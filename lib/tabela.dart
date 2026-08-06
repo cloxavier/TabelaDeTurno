@@ -16,6 +16,7 @@ import 'screens/integrantes_screen.dart';
 import 'screens/backup_screen.dart';
 import 'screens/lista_eventos_screen.dart';
 import 'screens/alarme_ringing_screen.dart';
+import 'screens/ajuda_screen.dart';
 import 'rotinas.dart';
 import 'temas.dart';
 
@@ -258,6 +259,13 @@ class _TabelaState extends State<Tabela> {
                         Navigator.push(
                           context,
                           MaterialPageRoute(builder: (context) => const BackupScreen())
+                        );
+                      }),
+                      ItemMenu(Icons.help_outline, "Central de Ajuda", () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const AjudaScreen())
                         );
                       }),
                     ],

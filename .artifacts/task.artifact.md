@@ -3,11 +3,15 @@
 - [x] Converter `ListView` para `SingleChildScrollView` (Sucesso Estrutural)
 
 Fase 3: Central de Ajuda e Refinamento
-- [/] Restaurar DNA e Estabilizar Estilos de Card
-    - [x] Implementar `ValueKey` em `lib/tabela.dart` forçando reatividade
-    - [x] Restaurar Estilo Clássico (0) à perfeição original
-    - [/] Eliminar Overflow no Estilo Moderno (1) via `FittedBox`
-    - [ ] Adicionar comentários profissionais e documentação de UI
-    - [ ] Sincronizar Tema Escuro instantaneamente em `lib/config.dart`
-- [ ] Criar tela de Ajuda Profissional (Navegação fluida por tópicos)
-- [ ] Criar seção "Sobre o App e Autor"
+- [x] Restaurar DNA e Estabilizar Estilos de Card
+- [x] Implementar `ValueKey` em `lib/tabela.dart` forçando reatividade
+- [x] Criar tela de Ajuda Profissional expansível
+- [x] Implementar seção "Sobre o Aplicativo" com foco no Autor
+- [ ] Refinar textos de ajuda conforme feedback do usuário
+
+Fase 4: Inteligência de Escala (Cérebro do App)
+- [ ] Criar algoritmo de sugestão de trocas por disponibilidade
+- [ ] Implementar tela de consulta "Com quem posso trocar?"
+
+Log de Futuro (Unificação de DNA):
+- [ ] Unificar os layouts de todas as visões sob uma base comum para permitir múltiplos estilos globais (incluindo a visão semanal que hoje é isolada).
