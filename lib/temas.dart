@@ -21,10 +21,17 @@ class AppController extends ChangeNotifier{
   static AppController instance = AppController();
 
   bool temaDark = isTemaDark;
+  int cardStyle = estiloCard;
 
   void changeTheme({bool? escuro}){
     temaDark = (escuro != null) ? escuro : !temaDark;
     isTemaDark = temaDark;
+    notifyListeners();
+  }
+
+  void updateCardStyle(int style) {
+    cardStyle = style;
+    estiloCard = style;
     notifyListeners();
   }
 }

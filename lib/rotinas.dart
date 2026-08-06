@@ -238,18 +238,155 @@ void mostrarPopupIntegrantes(BuildContext context, String grupoLetra) {
   );
 }
 
+/// Retorna a cor do turno adaptada ao tema atual (Claro ou Escuro)
+/// Garante conforto visual e contraste adequado em ambos os modos.
+Color getCorTurno(String turno) {
+  if (isTemaDark) {
+    switch (turno) {
+      case "F": return Colors.blue.shade300;
+      case "7": return Colors.green.shade400;
+      case "15": return Colors.orange.shade300;
+      case "23": return Colors.red.shade300;
+      default: return Colors.grey;
+    }
+  } else {
+    return coresHorarios[turno] ?? Colors.grey;
+  }
+}
+
+/// [cardDia] é o componente central da tabela, responsável por renderizar 
+/// cada célula do calendário. Possui dois estilos visuais e é altamente 
+/// adaptável ao contexto de visualização (Diária, Semanal, Mensal, Anual, Geral).
+/// [cardDia] é o componente central da tabela, responsável por renderizar 
+/// cada célula do calendário. Possui dois estilos visuais e é altamente 
+/// adaptável ao contexto de visualização (Diária, Semanal, Mensal, Anual, Geral).
+/// 
+/// [indice] - Posição do dia na sequência de turnos.
+/// [dm] - Dia do mês (texto).
+/// [ds] - Dia da semana abreviado.
+/// [full] - Se verdadeiro, renderiza o card em destaque (ex: Preview ou Semanal).
 Widget cardDia(int indice, String dm, String ds, Color corDaBarra,
     {int? mes, int? an, bool full = false, String tipo = "", VoidCallback? onTap, 
      bool hasHoliday = false, bool hasEvent = false, bool hasTask = false}) {
+  
+  Color cor = getCorTurno(tabela[indice]);
+  Color fs = corFs[ds]!;
+  double mrg = largura * 0.001;
+
+  // --- DNA DE DIMENSÕES (Preserva a adaptabilidade nativa do projeto) ---
+  double cardWidth = (full != true) 
+      ? (tipo == "aa" ? (largura * 0.72 / numeroDeGrupos) - mrg : (largura / divisoes) - mrg) 
+      : largura / 2;
+  
+  double cardMinHeight = (full != true) 
+      ? (tipo == "aa" ? largura / divisoes / 2 : largura / divisoes) 
+      : largura / 2;
+
+  // --- ESTILO 1: MODERNO ---
+  if (estiloCard == 1) {
+    return InkWell(
+      onTap: onTap,
+      child: ClipRRect(
+        borderRadius: const BorderRadius.all(Radius.circular(10)),
+        child: Container(
+          width: cardWidth,
+          // Definir height fixo evita o erro 'unbounded height' em Column(spaceBetween) 
+          // quando o card está dentro de uma ScrollView (DNA de estabilidade).
+          height: cardMinHeight, 
+          decoration: BoxDecoration(
+            color: isTemaDark ? const Color(0xFF1E1E1E) : Colors.white,
+            border: Border.all(
+              color: isTemaDark ? Colors.white.withValues(alpha: 0.1) : Colors.grey.withValues(alpha: 0.2),
+              width: 0.5,
+            ),
+            boxShadow: (flat || isTemaDark) ? null : [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.1),
+                blurRadius: 4,
+                offset: const Offset(1, 1)
+              )
+            ],
+          ),
+          child: Stack(
+            children: [
+              // Faixa Lateral do Turno (Identidade do Estilo Moderno)
+              Positioned(
+                left: 0, top: 0, bottom: 0,
+                child: Container(
+                  width: (full) ? 10 : 5, 
+                  color: (corDaBarra == desabilitado) ? desabilitado : cor,
+                ),
+              ),
+              // Conteúdo do Card distribuído verticalmente
+              Padding(
+                padding: EdgeInsets.fromLTRB((full) ? 15 : 8, 1, 4, 1),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.max,
+                  children: [
+                    // Topo: Dia da Semana e Indicadores
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        if (tipo != "aa" && diaSemanVisivel)
+                          Text(ds, style: TextStyle(
+                            color: fs, 
+                            fontSize: (full != true) ? 11 : 22, 
+                            fontWeight: FontWeight.bold
+                          )),
+                        if (hasHoliday || hasEvent || hasTask)
+                          Row(
+                            children: [
+                              if (hasHoliday) _dot(Colors.green, full),
+                              if (hasEvent) _dot(Colors.blue, full),
+                              if (hasTask) _dot(Colors.orange, full),
+                            ],
+                          ),
+                      ],
+                    ),
+                    // Centro: Número do Dia (Foco Principal)
+                    // Expanded + FittedBox garantem que o número caiba sem estourar o card.
+                    Expanded(
+                      child: Center(
+                        child: FittedBox(
+                          fit: BoxFit.contain,
+                          child: Text(dm, textAlign: TextAlign.center, style: TextStyle(
+                            color: (corDaBarra == Colors.amber) 
+                                ? Colors.amber 
+                                : (corDaBarra == desabilitado) 
+                                    ? corDaBarra 
+                                    : (isTemaDark ? Colors.white : Colors.black),
+                            fontWeight: FontWeight.bold,
+                            fontSize: (full != true) ? tamanhoFonteData : 60,
+                          )),
+                        ),
+                      ),
+                    ),
+                    // Rodapé: Letra do Turno
+                    Container(
+                      alignment: Alignment.bottomRight,
+                      child: Text(tabela[indice], style: TextStyle(
+                        color: (corDaBarra == desabilitado) ? corDaBarra : cor,
+                        fontWeight: FontWeight.bold,
+                        fontSize: (full != true) ? 12 : 30,
+                      )),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // --- ESTILO 0: CLÁSSICO (Original Restaurado com Estabilidade) ---
   bool dsv = false;
   bool dmv = false;
   bool hc = true;
   bool bctv = false;
   bool bv = false;
-
-  Color cor = coresHorarios[tabela[indice]]!;
-  Color fs = corFs[ds]!;
-  double mrg = largura * 0.001;
 
   if (tipo == "aa") {
     dsv = false;
@@ -262,8 +399,8 @@ Widget cardDia(int indice, String dm, String ds, Color corDaBarra,
   return InkWell(
     onTap: onTap,
     child: Container(
-      width: (full != true) ? (tipo == "aa" ? (largura * 0.72 / numeroDeGrupos) - mrg : (largura / divisoes) - mrg) : largura / 2,
-      constraints: BoxConstraints(minHeight: (full != true) ? (tipo == "aa" ? largura / divisoes / 2 : largura / divisoes) : largura / 2),
+      width: cardWidth,
+      height: cardMinHeight, // Estabilidade garantida para grids
       padding: const EdgeInsets.fromLTRB(2, 2, 4, 0),
       decoration: BoxDecoration(
         border: (flat) ? Border.all(color: Colors.grey) : Border.all(color: Colors.white54),
@@ -279,7 +416,6 @@ Widget cardDia(int indice, String dm, String ds, Color corDaBarra,
             child: Text(ds, textAlign: TextAlign.center, style: TextStyle(color: fs, fontSize: (full != true) ? 15 : 30)),
           ),
           
-          // Indicadores de Eventos
           if (hasHoliday || hasEvent || hasTask)
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -351,9 +487,6 @@ Widget _dot(Color color, bool isFull) {
 }
 
 Widget mes(int mes, {Key? key}) {
-  if (key != null) {
-    debugPrint("AUDITORIA: Chave de scroll aplicada ao mês: ${meses[mes]}");
-  }
   return Container(
     key: key,
     margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
@@ -439,7 +572,6 @@ dynamic corpoTabela(String tipo, BuildContext context, {int? pAno, int? pMes, in
         diaAux = 1;
       }
       diasCard.add(mes(aux.month - 1, key: (aux.month == pMesAlvo && aux.year == a) ? pKeyAlvo : null));
-     // debugPrint(diasCard.length.toString() + " - " + aux.month.toString());
       esteMes = aux.month;
     }
 
@@ -482,7 +614,6 @@ dynamic corpoTabela(String tipo, BuildContext context, {int? pAno, int? pMes, in
           if (numeroDeGrupos == 6) cardDia(indiceF, aux.day.toString(), diaSemana[aux.weekday - 1], corDaBarra, tipo: tipo, onTap: () => mostrarMenuEventos(context, dateSnapshot, tabela[indexFSnapshot]), hasHoliday: hasH, hasEvent: hasE, hasTask: hasT),
         ],
       ));
-       //debugPrint(diasCard.length.toString() + " - " + aux.month.toString());
     } else if (tipo == "a") {
       diasCardAux.add(cardDia(indice, aux.day.toString(), diaSemana[aux.weekday - 1], corDaBarra, tipo: tipo, onTap: () => mostrarMenuEventos(context, dateSnapshot, tabela[indexSnapshot]), hasHoliday: hasH, hasEvent: hasE, hasTask: hasT));
       if (diaAux % divisoes == 0 || esteMes != aux.month || dia == dias) {

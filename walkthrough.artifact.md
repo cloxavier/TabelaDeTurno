@@ -1,29 +1,28 @@
-# Walkthrough - Correção Estrutural e Sucesso no Autoscroll
+# Walkthrough - Refinamento e Sincronia de Layout
 
-Após uma auditoria profunda no DNA da aplicação, identificamos que o motor de busca do Flutter não conseguia "enxergar" o mês atual por ele estar fora da área visível inicial. Aplicamos uma mudança estrutural robusta que resolve o problema sem sacrificar a fluidez.
+Elevamos o nível de acabamento do aplicativo, garantindo que o novo Estilo Moderno seja prático para o uso diário e que as configurações sejam aplicadas de forma mágica e instantânea.
 
-## O que foi alterado
+## O que foi aprimorado
 
-### 🏗️ Nova Arquitetura de Layout
-Substituímos o `ListView` por uma combinação de `SingleChildScrollView` + `Column`.
-- **Por que fizemos isso?**: O `ListView` é "preguiçoso" e só cria os componentes que estão aparecendo na tela. Como o mês de Agosto está distante do topo, ele simplesmente não existia fisicamente na memória para o sistema de scroll localizá-lo.
-- **Resultado**: Agora o Flutter renderiza o ano inteiro de uma vez em segundo plano. Isso permite que o `ensureVisible` encontre o cabeçalho do mês instantaneamente na **tentativa 0**.
+### ⚡ Sincronia Instantânea (State Management)
+Integramos a escolha do layout ao motor principal do app (`AppController`):
+- **Como funciona**: Agora, no momento em que você clica em "MODERNO" ou "CLÁSSICO", o aplicativo envia um sinal para todas as telas (Anual, Mensal, Geral) serem redesenhadas imediatamente no fundo.
+- **Resultado**: Ao voltar para o calendário, você não precisa mais trocar de aba para ver o novo visual. Ele já estará lá esperando por você.
 
-### ✨ Preservação da Fluidez
-Garantimos que a experiência do usuário permanecesse intacta:
-- O scroll manual continua suave e responsivo.
-- O efeito elástico e a física de rolagem são idênticos aos anteriores.
-- A animação de autoscroll agora é certeira e acontece no momento em que você abre a aba.
+### 🔳 Grade Visual no Estilo Moderno
+Resolvemos o problema da falta de demarcação entre os dias:
+- **Sutileza**: Adicionamos uma borda cinza muito fina (opacidade 20%) ao redor de cada card moderno.
+- **Benefício**: Isso cria uma grade clara que separa os dias vertical e horizontalmente, facilitando a leitura da escala sem perder a leveza do design moderno.
 
-## Auditoria de Resultados (Logs)
-Se você observar o console agora, verá:
-1. `AUDITORIA: Chave de scroll aplicada ao mês: Agosto`
-2. `AUDITORIA (VisaoAnual/Geral): Contexto encontrado na tentativa 0. Iniciando scroll...`
+### 🧠 Interface Inteligente e Preview Fiel
+- **Menu Dinâmico**: A opção "Sem relevo (Sombra)" agora desaparece automaticamente quando o estilo Moderno está selecionado, mantendo a tela de configurações limpa e organizada.
+- **Tamanho Real**: O card de preview na tela de configurações foi ajustado para representar fielmente o tamanho e as proporções que o usuário verá na tabela real.
 
-## Como Testar
-1. Navegue entre as abas e entre em **Ano** ou **Geral**.
-2. Verifique se o scroll para Agosto ocorre de forma imediata e suave.
-3. Teste o scroll manual para confirmar que a fluidez continua conforme o esperado.
+## Como testar os refinamentos
+1. Vá em **Configurações -> Interface e Tema**.
+2. Alterne entre **CLÁSSICO** e **MODERNO**.
+3. Observe como a opção de "Sombra" aparece e desaparece.
+4. Volte para a tela principal e veja como a grade do calendário agora está perfeitamente demarcada com linhas sutis.
 
 ---
-**Com essa mudança estrutural, removemos o "ponto cego" do Flutter na nossa tabela. O sistema agora é 100% resiliente!**
+**Com esses ajustes, o Estilo Moderno deixa de ser um "beta" e se torna uma opção de visualização profissional e pronta para o dia a dia.**

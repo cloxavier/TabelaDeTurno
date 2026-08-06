@@ -85,6 +85,7 @@ class _HomeState extends State<Home> {
           flat = (preferencias[0]["botaoFlat"] != null) ? preferencias[0]["botaoFlat"] : flat;
           paginaInicial = (preferencias[0]["pgInicial"] != null) ? preferencias[0]["pgInicial"] : 0;
           nomeUsuario = (preferencias[0]["nomeUsuario"] != null) ? preferencias[0]["nomeUsuario"] : "";
+          estiloCard = (preferencias[0]["estiloCard"] != null) ? preferencias[0]["estiloCard"] : 0;
           paginaAtual = paginaInicial;
           AppController.instance.changeTheme(escuro: isTemaDark);
         });

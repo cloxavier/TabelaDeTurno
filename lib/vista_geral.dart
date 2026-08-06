@@ -40,12 +40,10 @@ class _VistaGeralState extends State<VistaGeral> {
   /// Caso o layout ainda não esteja pronto, realiza novas tentativas com pequenos delays.
   void _safeScrollToMonth({int attempts = 0}) {
     if (!mounted || !widget.isVisible) {
-      debugPrint("AUDITORIA (VistaGeral): Abortando scroll - Aba não visível ou desmontada.");
       return; 
     }
     
     if (attempts > 15) {
-      debugPrint("AUDITORIA (VistaGeral): Falha definitiva após 15 tentativas. Contexto não encontrado.");
       return; 
     }
 
@@ -54,7 +52,6 @@ class _VistaGeralState extends State<VistaGeral> {
 
     Future.delayed(Duration(milliseconds: delay), () {
       if (_mesAtualKey.currentContext != null) {
-        debugPrint("AUDITORIA (VistaGeral): Contexto encontrado na tentativa $attempts. Iniciando scroll...");
         Scrollable.ensureVisible(
           _mesAtualKey.currentContext!,
           duration: const Duration(milliseconds: 800),
@@ -62,7 +59,6 @@ class _VistaGeralState extends State<VistaGeral> {
           alignment: 0.0, // Posiciona o cabeçalho no topo exato da tela
         );
       } else {
-        debugPrint("AUDITORIA (VistaGeral): Contexto nulo na tentativa $attempts. Reagendando...");
         _safeScrollToMonth(attempts: attempts + 1);
       }
     });

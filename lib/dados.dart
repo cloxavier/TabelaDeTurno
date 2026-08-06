@@ -150,6 +150,9 @@ String meuTexto = "texto";
 // IDENTIFICAÇÃO DO USUÁRIO PARA COMPARTILHAMENTO
 String nomeUsuario = "";
 
+// ESTILO DO CARD DO DIA NA TABELA (0: Clássico, 1: Moderno)
+int estiloCard = 0;
+
 //FERIADOS
 Map<String, dynamic> feriados = {};
 List<Map<String, dynamic>> listaFeriados = [];
@@ -163,6 +166,7 @@ List  preferencias=[
     "temaEscuro" : isTemaDark,
     "botaoFlat" : flat,
     "nomeUsuario": nomeUsuario,
+    "estiloCard": estiloCard,
   }
 ];
 

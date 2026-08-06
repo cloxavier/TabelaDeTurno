@@ -12,6 +12,44 @@ class Interface extends StatefulWidget {
 }
 
 class _InterfaceState extends State<Interface> {
+
+  Widget _styleOption(int value, String label) {
+    bool isSelected = estiloCard == value;
+    return InkWell(
+      onTap: () {
+        setState(() {
+          estiloCard = value;
+          // Sincroniza o estado global e notifica ouvintes (Tabela principal)
+          // para redesenho imediato do layout.
+          if (estiloCard == 0) {
+            barraVisivel = false; 
+            diaMesVisivel = true;
+            horarioCentro = false;
+            barraComTabelaVisivel = true;
+          }
+          preferencias[0]["estiloCard"] = estiloCard;
+          preferencias[0]["interface"] = barraVisivel;
+          salvaArquivo();
+          
+          AppController.instance.updateCardStyle(value);
+        });
+      },
+      child: Column(
+        children: [
+          Icon(
+            isSelected ? Icons.radio_button_checked : Icons.radio_button_off,
+            color: isSelected ? Colors.deepOrange : Colors.grey,
+          ),
+          Text(label, style: TextStyle(
+            color: isSelected ? Colors.deepOrange : Colors.grey,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            fontSize: 12
+          )),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     //Cria lista de booleando para toggleButton
@@ -42,69 +80,58 @@ class _InterfaceState extends State<Interface> {
               ),
             ),
 
-            //Interface
+            //Interface: Estilo do Card
             Container(
               width: largura*0.85,
               decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(15),
                   border: Border.all(color: Colors.grey)
               ),
-              //margin: EdgeInsets.symmetric(vertical: 15,horizontal: 30),
               margin: const EdgeInsets.only(top: 10,bottom: 10),
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(12),
               alignment: Alignment.centerLeft,
-              child: RadioGroup<bool>(
-                groupValue: barraVisivel,
-                onChanged: (value) {
-                  if (value == null) return;
-                  setState(() {
-                    barraVisivel = value;
-                    if (!barraVisivel) diaMesVisivel = true;
-                    horarioCentro = barraVisivel;
-                    barraComTabelaVisivel = !barraVisivel;
-                    preferencias[0]["interface"] = barraVisivel;
-                    salvaArquivo();
-                  });
-                },
-                child: Column(
-                  children: [
-                    const Row(
+              child: Column(
+                children: [
+                  const Text("Selecione o layout dos dias:", style: TextStyle(fontWeight: FontWeight.bold)),
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      _styleOption(0, "CLÁSSICO"),
+                      _styleOption(1, "MODERNO"),
+                    ],
+                  ),
+                  const Divider(height: 30, thickness: 1),
+                  Visibility(
+                    visible: estiloCard == 0,
+                    child: Column(
                       children: [
-                        Radio<bool>(
-                          value: true,
+                        const Text("Preferências de Efeito:", style: TextStyle(fontSize: 12, color: Colors.grey)),
+                        Row(
+                          children: [
+                            Checkbox(
+                              value: flat,
+                              onChanged: (value) {
+                                setState(() {
+                                  flat = !flat;
+                                  preferencias[0]["botaoFlat"] = flat;
+                                  salvaArquivo();
+                                  // Notifica ouvintes para atualizar sombra
+                                  AppController.instance.notifyListeners();
+                                });
+                              },
+                            ),
+                            const Text("Sem relevo (Sombra)")
+                          ],
                         ),
-                        Text("Horário ao lado do dia.")],
-                    ),
-                    const Row(
-                      children: [
-                        Radio<bool>(
-                          value: false,
-                        ),
-                        Text("Horário destacado no fundo.")
+                        const Divider(thickness: 1,),
                       ],
                     ),
-                  const Divider(thickness: 2,),
-                  const Text("Padrão no tema escuro!") ,
-                  Row(
-                    children: [
-                      Checkbox(
-                        value:  flat,
-                        onChanged: ( value) {
-                          setState(() {
-                            flat = !flat;
-                            preferencias[0]["botaoFlat"] = flat;
-                            salvaArquivo();
-                          });
-                        },
-                      ),
-                      const Text("Sem relevo.")
-                    ],
-                  ),const Divider(thickness: 2,),
-                  Container(
-                      margin: const EdgeInsets.symmetric(vertical: 5),
-                      child: cardDia(1, dataHoje.day.toString(), diaSemana[dataHoje.weekday-1], Colors.amber ,full: true)),
+                  ),
+                  const Text("Prévia do visual selecionado:", style: TextStyle(fontSize: 12, color: Colors.grey)),
+                  const SizedBox(height: 10),
+                  cardDia(1, dataHoje.day.toString(), diaSemana[dataHoje.weekday-1], Colors.amber ,full: true),
                 ],
-              ),
               ),
             ),
 

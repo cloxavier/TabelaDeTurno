@@ -17,6 +17,7 @@ import 'screens/backup_screen.dart';
 import 'screens/lista_eventos_screen.dart';
 import 'screens/alarme_ringing_screen.dart';
 import 'rotinas.dart';
+import 'temas.dart';
 
 /// [Tabela] é o widget principal que gerencia a navegação entre as diferentes
 /// visões do calendário de turno (Diária, Semanal, Mensal, Anual e Geral).
@@ -154,144 +155,149 @@ class _TabelaState extends State<Tabela> {
     altura = MediaQuery.of(context).size.height;
     largura = MediaQuery.of(context).size.width;
 
-    final List<Widget> paginasList = [
-      const VisaoDiaria(),
-      VisaoSemanal(grupo: grupoAtual),
-      VisaoMensal(ano: anoAtual, mes: mesAtual, grupo: grupoAtual),
-      VisaoAnual(ano: anoAtual, grupo: grupoAtual, isVisible: paginaAtual == 3),
-      VistaGeral(ano: anoAtual, grupo: grupoAtual, isVisible: paginaAtual == 4)
-    ];
+    return AnimatedBuilder(
+      animation: AppController.instance,
+      builder: (context, child) {
+        final List<Widget> paginasList = [
+          const VisaoDiaria(),
+          VisaoSemanal(key: ValueKey("S_${AppController.instance.cardStyle}_$isTemaDark"), grupo: grupoAtual),
+          VisaoMensal(key: ValueKey("M_${AppController.instance.cardStyle}_$isTemaDark"), ano: anoAtual, mes: mesAtual, grupo: grupoAtual),
+          VisaoAnual(key: ValueKey("A_${AppController.instance.cardStyle}_$isTemaDark"), ano: anoAtual, grupo: grupoAtual, isVisible: paginaAtual == 3),
+          VistaGeral(key: ValueKey("G_${AppController.instance.cardStyle}_$isTemaDark"), ano: anoAtual, grupo: grupoAtual, isVisible: paginaAtual == 4)
+        ];
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Row(
-          children: [
-            Text((largura > 350) ? "Tabela de Turno" : "Tabela"),
-            const Spacer(),
-            // Exibe o controle de ano apenas em abas permitidas.
-            Visibility(
-              visible: controleAno,
-              child: Row(
-                children: [
-                  IconButton(
-                    icon: const Icon(Icons.arrow_left),
-                    onPressed: () => setState(() => anoAtual--),
-                  ),
-                  Text("$anoAtual"),
-                  IconButton(
-                    icon: const Icon(Icons.arrow_right),
-                    onPressed: () => setState(() => anoAtual++),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        )
-      ),
-      drawer: Drawer(
-        child: Column(
-          children: [
-            Expanded(
-              child: ListView(
-                padding: EdgeInsets.zero,
-                children: [
-                  DrawerHeader(
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Colors.orange.shade800, Colors.orangeAccent]
-                      )
-                    ),
-                    child: SingleChildScrollView(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Material(
-                            clipBehavior: Clip.antiAliasWithSaveLayer,
-                            borderRadius: const BorderRadius.all(Radius.circular(40)),
-                            child: Padding(
-                              padding: const EdgeInsets.all(4.0),
-                              child: Image.asset(
-                                "assets/images/tabela-de-turno-azul.png",
-                                width: 60,
-                                height: 60,
-                              ),
-                            )
-                          ),
-                          const Padding(
-                            padding: EdgeInsets.all(8.0),
-                            child: Text(
-                              "Tabela de Turno",
-                              style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
-                            ),
-                          )
-                        ],
+        return Scaffold(
+          appBar: AppBar(
+            title: Row(
+              children: [
+                Text((largura > 350) ? "Tabela de Turno" : "Tabela"),
+                const Spacer(),
+                // Exibe o controle de ano apenas em abas permitidas.
+                Visibility(
+                  visible: controleAno,
+                  child: Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.arrow_left),
+                        onPressed: () => setState(() => anoAtual--),
                       ),
-                    )
+                      Text("$anoAtual"),
+                      IconButton(
+                        icon: const Icon(Icons.arrow_right),
+                        onPressed: () => setState(() => anoAtual++),
+                      ),
+                    ],
                   ),
-                  ItemMenu(Icons.group, "Gerenciar Integrantes", () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const IntegrantesScreen())
-                    );
-                  }),
-                  ItemMenu(Icons.event_note, "Meus Lançamentos", () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const ListaEventosScreen())
-                    ).then((_) => setState(() {}));
-                  }),
-                  ItemMenu(Icons.settings, "Configurações", () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const Configuracoes())
-                    );
-                  }),
-                  ItemMenu(Icons.sync, "Backup e Sincronização", () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const BackupScreen())
-                    );
-                  }),
-                ],
-              ),
-            ),
-            const Padding(
-              padding: EdgeInsets.all(8.0),
-              child: Text("v1.0.0", style: TextStyle(color: Colors.grey, fontSize: 12)),
+                ),
+              ],
             )
-          ],
-        ),
-      ),
-      body: OrientationBuilder(
-        builder: (context, orientation) {
-          // Ajusta a grade conforme a orientação do dispositivo.
-          divisoes = (orientation == Orientation.portrait) ? 5 : 7;
-          tamanhoFonteData = (orientation == Orientation.portrait)
-              ? tamanhoFonteDataP
-              : tamanhoFonteDataL;
-          orientacao = orientation;
-          return corpoPagina(paginasList);
-        }
-      ),
-      bottomNavigationBar: BottomNavigationBar(
-        type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.white,
-        selectedItemColor: Colors.orange.shade800,
-        unselectedItemColor: Colors.grey,
-        currentIndex: paginaAtual,
-        onTap: _onItemTapped,
-        items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.view_headline), label: "Dia"),
-          BottomNavigationBarItem(icon: Icon(Icons.dashboard_customize_outlined), label: "Semana"),
-          BottomNavigationBarItem(icon: Icon(Icons.calendar_month), label: "Mes"),
-          BottomNavigationBarItem(icon: Icon(Icons.grid_on), label: "Ano"),
-          BottomNavigationBarItem(icon: Icon(Icons.view_list), label: "Geral"),
-        ],
-      ),
+          ),
+          drawer: Drawer(
+            child: Column(
+              children: [
+                Expanded(
+                  child: ListView(
+                    padding: EdgeInsets.zero,
+                    children: [
+                      DrawerHeader(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [Colors.orange.shade800, Colors.orangeAccent]
+                          )
+                        ),
+                        child: SingleChildScrollView(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Material(
+                                clipBehavior: Clip.antiAliasWithSaveLayer,
+                                borderRadius: const BorderRadius.all(Radius.circular(40)),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(4.0),
+                                  child: Image.asset(
+                                    "assets/images/tabela-de-turno-azul.png",
+                                    width: 60,
+                                    height: 60,
+                                  ),
+                                )
+                              ),
+                              const Padding(
+                                padding: EdgeInsets.all(8.0),
+                                child: Text(
+                                  "Tabela de Turno",
+                                  style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold),
+                                ),
+                              )
+                            ],
+                          ),
+                        )
+                      ),
+                      ItemMenu(Icons.group, "Gerenciar Integrantes", () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const IntegrantesScreen())
+                        );
+                      }),
+                      ItemMenu(Icons.event_note, "Meus Lançamentos", () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const ListaEventosScreen())
+                        ).then((_) => setState(() {}));
+                      }),
+                      ItemMenu(Icons.settings, "Configurações", () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const Configuracoes())
+                        );
+                      }),
+                      ItemMenu(Icons.sync, "Backup e Sincronização", () {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const BackupScreen())
+                        );
+                      }),
+                    ],
+                  ),
+                ),
+                const Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text("v1.0.0", style: TextStyle(color: Colors.grey, fontSize: 12)),
+                )
+              ],
+            ),
+          ),
+          body: OrientationBuilder(
+            builder: (context, orientation) {
+              // Ajusta a grade conforme a orientação do dispositivo.
+              divisoes = (orientation == Orientation.portrait) ? 5 : 7;
+              tamanhoFonteData = (orientation == Orientation.portrait)
+                  ? tamanhoFonteDataP
+                  : tamanhoFonteDataL;
+              orientacao = orientation;
+              return corpoPagina(paginasList);
+            }
+          ),
+          bottomNavigationBar: BottomNavigationBar(
+            type: BottomNavigationBarType.fixed,
+            backgroundColor: isTemaDark ? const Color(0xFF1E1E1E) : Colors.white,
+            selectedItemColor: Colors.orange.shade800,
+            unselectedItemColor: isTemaDark ? Colors.white60 : Colors.grey,
+            currentIndex: paginaAtual,
+            onTap: _onItemTapped,
+            items: const [
+              BottomNavigationBarItem(icon: Icon(Icons.view_headline), label: "Dia"),
+              BottomNavigationBarItem(icon: Icon(Icons.dashboard_customize_outlined), label: "Semana"),
+              BottomNavigationBarItem(icon: Icon(Icons.calendar_month), label: "Mes"),
+              BottomNavigationBarItem(icon: Icon(Icons.grid_on), label: "Ano"),
+              BottomNavigationBarItem(icon: Icon(Icons.view_list), label: "Geral"),
+            ],
+          ),
+        );
+      },
     );
   }
 
