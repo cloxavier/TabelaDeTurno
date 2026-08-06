@@ -20,6 +20,24 @@ class AjudaScreen extends StatelessWidget {
         conteudo: "Utilize a barra inferior para alternar entre as visões Diária, Semanal, Mensal, Anual e Geral. A rolagem automática levará você sempre ao mês ou dia atual.",
       ),
       HelpTopic(
+        categoria: HelpCategory.basico,
+        icone: Icons.group,
+        titulo: "Gerenciamento de Equipe",
+        conteudo: "Você pode lançar integrantes em cada turno utilizando o gerenciador. O acesso pode ser feito pelo menu lateral, na visão diária ou na visão geral (clicando na letra de cada grupo para ver quem faz parte e chamar o gerenciador).",
+      ),
+      HelpTopic(
+        categoria: HelpCategory.basico,
+        icone: Icons.event_available,
+        titulo: "Menu de Eventos e Lançamentos",
+        conteudo: "Acesse o Menu de Eventos clicando no botão 'Ações para este dia' (na visão diária) ou clicando diretamente em qualquer dia no calendário. Lá você pode agendar Tarefas, Horas Extras, Férias e Trocas.",
+      ),
+      HelpTopic(
+        categoria: HelpCategory.basico,
+        icone: Icons.lens,
+        titulo: "O que significam as bolinhas coloridas?",
+        conteudo: "No calendário, as datas com agendamentos são marcadas com ícones circulares: Verde (Feriados), Azul (Eventos ou Trocas) e Laranja (Tarefas ou Horas Extras).",
+      ),
+      HelpTopic(
         categoria: HelpCategory.compartilhamento,
         icone: Icons.share,
         titulo: "Como compartilhar minha escala?",
@@ -29,7 +47,7 @@ class AjudaScreen extends StatelessWidget {
         categoria: HelpCategory.compartilhamento,
         icone: Icons.swap_horiz,
         titulo: "Como funcionam as trocas inteligente?",
-        conteudo: "Ao importar um 'Convite de Troca' de um colega, o aplicativo inverte automaticamente as funções, facilitando o registro múto da troca de turnos.",
+        conteudo: "Ao importar um 'Convite de Troca' de um colega, o aplicativo inverte automaticamente as funções, facilitando o registro mútuo da troca de turnos.",
       ),
       HelpTopic(
         categoria: HelpCategory.estilos,
@@ -69,10 +87,7 @@ class AjudaScreen extends StatelessWidget {
                 Text("Sobre o Aplicativo", style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold)),
                 const SizedBox(height: 15),
                 Text(
-                  "A Tabela de Turno nasceu de uma necessidade real minha e de colegas de trabalho. "
-                  "Iniciado em 2022, foi otimizado e ganhou cara nova em 2026 . "
-                  "Desenvolvido em Flutter e agora com apoio luxuoso de uma IA, ganhei folego novo para continuar criando. "
-                  "Esta aplicação é totalmente gratuita e o código pode ser encontrado no GitHub, caso queiram ajudar. Em fase de testes, principalmente das novas funcionalidade",
+                  "A Tabela de Turno surgiu para suprir uma necessidade prática: a programação de eventos e compromissos cruzando as datas com o regime de escalas. Criado originalmente em 2022 e reconstruído em 2026 utilizando a tecnologia Flutter, o aplicativo permite que o usuário e seus colegas consultem a tabela para marcar férias, viagens e festas de forma rápida, identificando sempre o melhor período de acordo com os turnos de trabalho.",
                   textAlign: TextAlign.justify,
                   style: const TextStyle(fontSize: 15, height: 1.4),
                 ),
