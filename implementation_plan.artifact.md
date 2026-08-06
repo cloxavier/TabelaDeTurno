@@ -1,43 +1,31 @@
-# Plano de Implementação: Central de Ajuda e Identidade Visual (Fase 3)
+# Plano de Restauração de DNA e Correção de Overflow (Clássico)
 
-Este plano estabelece a criação de uma Central de Ajuda profissional e expansível, além da seção "Sobre", consolidando a identidade do aplicativo e fornecendo suporte claro ao usuário.
+Este plano visa restaurar a flexibilidade original do Estilo Clássico (0), eliminando os erros de "Overflow" sem perder a estabilidade do Estilo Moderno (1).
 
 ## User Review Required
 
 > [!IMPORTANT]
-> **Arquitetura Expansível**: A Central de Ajuda será baseada em uma lista de objetos de dados. Isso significa que adicionar um novo tópico de ajuda no futuro será tão simples quanto adicionar uma linha de código em uma lista, sem precisar mexer no layout da tela.
+> **Restauração da Flexibilidade**: O Estilo Clássico voltará a utilizar `constraints (minHeight)` em vez de `height` fixo. Isso permite que o card cresça sutilmente se o conteúdo for maior que o esperado, evitando a tarja de erro "OVERFLOWED".
 >
-> **Seção Sobre**: Criamos um texto profissional que valoriza sua trajetória como desenvolvedor autodidata e a origem prática do projeto, conforme os dados fornecidos.
+> **Manutenção do Moderno**: O Estilo Moderno continuará usando `height` fixo para garantir que a barra lateral de turno ocupe toda a altura do card e que o alinhamento `spaceBetween` funcione de forma profissional, agora protegido pelo `FittedBox`.
 
 ## Proposed Changes
 
-### 1. Modelo de Dados de Ajuda
-#### [NEW] [help_topic.dart](file:///F:/Claudio/Flutter/Projeto%20Tabela%20de%20turno/tabelar_de_turno-editada/lib/models/help_topic.dart)
-- Criar a classe `HelpTopic` com campos: `titulo`, `conteudo`, `icone` e `categoria`.
+### 1. Ajuste no Motor de Card (DNA)
+#### [MODIFY] [lib/rotinas.dart](file:///F:/Claudio/Flutter/Projeto%20Tabela%20de%20turno/tabelar_de_turno-editada/lib/rotinas.dart)
+- No Estilo 0 (Clássico):
+    - Alterar o `Container` para usar `constraints: BoxConstraints(minHeight: cardMinHeight)` e remover a propriedade `height`.
+    - Isso restaura o comportamento original onde o card "respira" conforme o conteúdo.
+- No Estilo 1 (Moderno):
+    - Manter `height: cardMinHeight` para garantir a estética da barra lateral.
+    - Reforçar o uso de `FittedBox` no número do dia para evitar qualquer overflow residual.
 
-### 2. Tela de Ajuda Profissional
-#### [NEW] [ajuda_screen.dart](file:///F:/Claudio/Flutter/Projeto%20Tabela%20de%20turno/tabelar_de_turno-editada/lib/screens/ajuda_screen.dart)
-- Implementar uma `SliverList` ou `ListView` que renderiza `ExpansionTile` para cada tópico.
-- Organizar por categorias: **Uso Básico**, **Compartilhamento & Trocas**, **Configurações & Estilos** e **Segurança**.
-- Incluir no final o item **Sobre o Aplicativo** com o design que valoriza sua autoria.
-
-### 3. Integração no Menu Lateral (Drawer)
-#### [MODIFY] [tabela.dart](file:///F:/Claudio/Flutter/Projeto%20Tabela%20de%20turno/tabelar_de_turno-editada/lib/tabela.dart)
-- Adicionar o `ItemMenu` da "Central de Ajuda" com ícone de suporte.
-
-### 4. Registro de Futuro (Log de Evolução)
-#### [MODIFY] [task.artifact.md](file:///F:/Claudio/Flutter/Projeto%20Tabela%20de%20turno/tabelar_de_turno-editada/.artifacts/task.artifact.md)
-- Adicionar a tarefa de "Unificação de DNA" para permitir múltiplos layouts em todas as visões (incluindo Semanal).
+### 2. Documentação e Comentários
+- Adicionar comentários no código explicando por que o Clássico usa `constraints` e o Moderno usa `height`, facilitando futuras manutenções sem quebrar o layout novamente.
 
 ## Verification Plan
 
 ### Manual Verification
-- [ ] Validar a navegação Drawer -> Ajuda.
-- [ ] Testar a expansão dos tópicos e legibilidade.
-- [ ] Conferir se os dados na seção "Sobre" estão corretos (Nome, E-mail, Data).
-- [ ] Verificar a adaptação ao Tema Escuro.
-
-## Git Versioning (Executado após conclusão)
-1. `git add .`
-2. `git commit -m "Fase 3: Implementação da Central de Ajuda expansível e seção Sobre o Autor"`
-3. `git push origin main`
+- [ ] Verificar se o Estilo Clássico na visão "Geral" e "Ano" parou de exibir o erro "OVERFLOWED".
+- [ ] Confirmar se o Estilo Moderno continua centralizado e com a barra lateral correta.
+- [ ] Validar a alternância entre estilos nas Configurações.

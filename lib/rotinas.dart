@@ -400,7 +400,10 @@ Widget cardDia(int indice, String dm, String ds, Color corDaBarra,
     onTap: onTap,
     child: Container(
       width: cardWidth,
-      height: cardMinHeight, // Estabilidade garantida para grids
+      // Usamos constraints em vez de height fixo para o modo Clássico.
+      // Isso permite que o card cresça se o conteúdo for maior que o minHeight,
+      // evitando o erro de 'BOTTOM OVERFLOWED' em telas pequenas.
+      constraints: BoxConstraints(minHeight: cardMinHeight),
       padding: const EdgeInsets.fromLTRB(2, 2, 4, 0),
       decoration: BoxDecoration(
         border: (flat) ? Border.all(color: Colors.grey) : Border.all(color: Colors.white54),
