@@ -1,0 +1,7 @@
+- [x] Update dependencies in `pubspec.yaml`
+- [x] Remove Firebase from `main.dart`, `dados.dart`, `tabela.dart`, `tarefas_screen.dart`
+- [x] Implement `LocalStorageService`
+- [x] Update `TarefasScreen` for local storage
+- [x] Add Backup/Restore/Share UI in `Tabela` (Drawer)
+- [x] Implement selective sharing logic
+- [ ] Final verification and cleanup

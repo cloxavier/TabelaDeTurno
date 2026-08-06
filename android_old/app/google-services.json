@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "839760665096",
+    "project_id": "tabeladeturno-c23f4",
+    "storage_bucket": "tabeladeturno-c23f4.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:839760665096:android:9071a11a03a3599f6b8fbd",
+        "android_client_info": {
+          "package_name": "br.com.xavier.tabela_de_turno"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "839760665096-cvm00t21mjo95dj6m6rnl4oel7hvienk.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "br.com.xavier.tabela_de_turno",
+            "certificate_hash": "9cf63ef684afb890a47c01fd7048ce68ce9560bd"
+          }
+        },
+        {
+          "client_id": "839760665096-a0cpa1p09t6fq7rc5fh44o2n3hcirihd.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAjj_h0Itm_OwQEvRyCNKay1KhJyZrKcgA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "839760665096-a0cpa1p09t6fq7rc5fh44o2n3hcirihd.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

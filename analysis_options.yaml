@@ -1,0 +1,17 @@
+# Este arquivo configura o analisador do Dart para ajudar na qualidade do código.
+include: package:flutter_lints/flutter.yaml
+
+linter:
+  rules:
+    # Regras personalizadas para o seu projeto
+    - use_super_parameters: true
+    - avoid_print: false # Mantendo print liberado se você precisar para debug
+
+analyzer:
+  exclude:
+    - build/**
+    - "**/*.g.dart"
+    - "**/*.freezed.dart"
+  errors:
+    # Silencia avisos de pacotes que podem estar em transição
+    uri_does_not_exist: warning
