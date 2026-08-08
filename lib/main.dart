@@ -53,17 +53,27 @@ class _HomeState extends State<Home> {
       DeviceOrientation.portraitDown
     ]);
 
-    Future.delayed(const Duration(seconds: 3)).then((value) {
+    // Reduzido o delay de 3s para 1s para tornar a abertura mais ágil.
+    Future.delayed(const Duration(seconds: 1)).then((value) {
       if (!mounted) return;
       
       // Inicializa variáveis globais com a data de hoje
       dataHoje = DateTime.now();
-      anoAtual = dataHoje.year;
-      mesAtual = dataHoje.month;
-      diaAtual = dataHoje.day;
-      dataAtual = DateTime(anoAtual, mesAtual, diaAtual);
-      dropdownValue = mesesAbrev[mesAtual - 1]; // Sincroniza o seletor de meses
+      anoHoje = dataHoje.year;
+      mesHoje = dataHoje.month;
+      diaHoje = dataHoje.day;
       
+      // Sincroniza estado inicial da navegação
+      dataAtual = DateTime(anoHoje, mesHoje, diaHoje);
+      anoAtual = anoHoje;
+      mesAtual = mesHoje;
+      diaAtual = diaHoje;
+      
+      if (mesesAbrev.length >= mesAtual) {
+        dropdownValue = mesesAbrev[mesAtual - 1];
+      }
+      
+      // Carrega eventos e tarefas antes de abrir a tabela principal
       atualizarCache().then((_) {
         if (!mounted) return;
         Navigator.pushReplacement(
@@ -121,12 +131,16 @@ class _HomeState extends State<Home> {
                 height: 200,
               ),
             ),
-            const Positioned(
-              bottom: 20,
+            Positioned(
+              // Ajusta a posição para flutuar acima da barra de navegação do Android (SafeArea).
+              bottom: MediaQuery.of(context).padding.bottom + 10,
               right: 20,
-              child: Text(
+              child: const Text(
                 "por Claudio Xavier",
-                style: TextStyle(color: Color(0xFF0D47A1)),
+                style: TextStyle(
+                  color: Color(0xFF0D47A1),
+                  fontWeight: FontWeight.bold,
+                ),
               )
             )
           ],
