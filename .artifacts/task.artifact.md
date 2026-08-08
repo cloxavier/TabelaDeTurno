@@ -5,9 +5,10 @@
 - [x] Implementar seção "Sobre o Aplicativo" com foco no Autor
 - [x] Auditoria e Correção de Alarmes e Persistência
 - [x] Modernização Ultra-Clean do Gerenciador de Integrantes
-- [/] Refinamento de Tipografia e Higiene Visual
-    - [x] Implementar `TextOverflow.ellipsis` no Nome
-    - [x] Implementar `TextOverflow.ellipsis` no Cargo
-    - [x] Limitar Nome a 1 linha
-    - [x] Limitar Cargo a 1 linha (ou 2 se necessário)
-    - [x] Padronizar altura dos cards
+- [x] Refinamento de Tipografia e Higiene Visual
+- [/] Implementação da Funcionalidade "Abrir com" (Importação Direta)
+    - [ ] Adicionar dependência `receive_sharing_intent` no `pubspec.yaml`
+    - [ ] Configurar `intent-filter` no `AndroidManifest.xml`
+    - [ ] Implementar motor de validação de DNA em `LocalStorageService`
+    - [ ] Configurar listener de captura na inicialização do app (`main.dart`)
+    - [ ] Testar importação direta via WhatsApp e via Arquivo

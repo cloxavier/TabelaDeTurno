@@ -351,6 +351,73 @@ class LocalStorageService {
     return false;
   }
 
+  /// Processa um JSON vindo de fora do aplicativo (ex: clicado no WhatsApp).
+  /// Realiza uma validação rigorosa de "DNA" para garantir a segurança dos dados.
+  Future<void> handleExternalJson(BuildContext context, String jsonContent) async {
+    debugPrint("📥 Processando JSON externo...");
+    try {
+      Map<String, dynamic> package = json.decode(jsonContent);
+      debugPrint("📦 Pacote decodificado. Tipo detectado: ${package["type"]}");
+      
+      // Validação de DNA: O arquivo deve conter o campo 'type' conhecido ou a chave 'data' de backup.
+      bool isValid = false;
+      if (package.containsKey("type")) {
+        final String type = package["type"];
+        if (["exchange_invite", "selective_groups", "work_groups_and_people", "app_setup"].contains(type)) {
+          isValid = true;
+        }
+      } else if (package.containsKey("data") && package.containsKey("version")) {
+        // Provável backup completo
+        isValid = true;
+      }
+
+      if (!isValid) {
+        debugPrint("❌ Validação de DNA falhou.");
+        throw Exception("O arquivo não possui uma assinatura digital válida da Tabela de Turno.");
+      }
+
+      if (!context.mounted) {
+        debugPrint("⚠️ Contexto não montado, abortando diálogo.");
+        return;
+      }
+
+      debugPrint("✅ DNA válido. Abrindo diálogo de preview para tipo: ${package["type"] ?? 'Backup'}");
+
+      // Encaminha para os mesmos diálogos de preview que o botão "Importar" utiliza.
+      if (package["type"] == "exchange_invite") {
+        await _showExchangeInvitePreview(context, package);
+      } else if (package.containsKey("data")) {
+        await _showBackupPreview(context, package);
+      } else if (package["type"] == "selective_groups" || package["type"] == "work_groups_and_people") {
+        await _showSelectiveGroupsPreview(context, package);
+      } else if (package["type"] == "app_setup") {
+        await _showAppSetupPreview(context, package);
+      }
+      
+    } catch (e) {
+      if (!context.mounted) return;
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Row(
+            children: [
+              Icon(Icons.warning_amber_rounded, color: Colors.red),
+              SizedBox(width: 10),
+              Text("Arquivo Inválido"),
+            ],
+          ),
+          content: Text(
+            "O arquivo selecionado não é um formato de dados reconhecido pelo Tabela de Turno ou está corrompido.\n\n"
+            "Erro técnico: ${e.toString().replaceAll("Exception: ", "")}"
+          ),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text("ENTENDI")),
+          ],
+        ),
+      );
+    }
+  }
+
   /// Mostra um Preview antes de importar uma troca de um colega.
   Future<bool> _showExchangeInvitePreview(BuildContext context, Map<String, dynamic> package) async {
     final String senderGroup = package["senderGroup"];

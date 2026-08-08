@@ -2,7 +2,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:receive_sharing_intent/receive_sharing_intent.dart';
+import 'dart:io';
 import 'notification_service.dart';
+import 'local_storage_service.dart';
 
 // Importe das páginas de interfaces, dados e regras de negócios.
 import 'config.dart'; // Página de configurações
@@ -32,6 +35,7 @@ class Tabela extends StatefulWidget {
 class _TabelaState extends State<Tabela> {
   late PageController _pageController;
   StreamSubscription? _notificationSubscription;
+  StreamSubscription? _intentSub;
   Timer? _midnightTimer;
 
   @override
@@ -39,6 +43,26 @@ class _TabelaState extends State<Tabela> {
     super.initState();
     _pageController = PageController(initialPage: paginaInicial);
     
+    // Escuta por compartilhamento de arquivos JSON enquanto o app está aberto.
+    _intentSub = ReceiveSharingIntent.instance.getMediaStream().listen((List<SharedMediaFile> value) {
+      if (value.isNotEmpty) {
+        _handleSharedFile(value.first.path);
+      }
+    }, onError: (err) {
+      debugPrint("Erro no stream de compartilhamento: $err");
+    });
+
+    // Verifica compartilhamento em 'Cold Start' (App estava fechado).
+    ReceiveSharingIntent.instance.getInitialMedia().then((List<SharedMediaFile> value) {
+      if (value.isNotEmpty) {
+        // Pequeno atraso para garantir que a interface da Tabela esteja estável.
+        Future.delayed(const Duration(milliseconds: 500), () {
+          _handleSharedFile(value.first.path);
+        });
+      }
+      ReceiveSharingIntent.instance.reset();
+    });
+
     // Inicializa visibilidade das barras conforme a página inicial definida.
     atualizaPagina(paginaInicial);
     
@@ -134,8 +158,24 @@ class _TabelaState extends State<Tabela> {
   void dispose() {
     _pageController.dispose();
     _notificationSubscription?.cancel();
+    _intentSub?.cancel();
     _midnightTimer?.cancel();
     super.dispose();
+  }
+
+  /// Processa o arquivo JSON compartilhado vindo do WhatsApp ou Gestor de Arquivos.
+  Future<void> _handleSharedFile(String path) async {
+    try {
+      final file = File(path);
+      if (await file.exists()) {
+        final content = await file.readAsString();
+        if (mounted) {
+          await LocalStorageService().handleExternalJson(context, content);
+        }
+      }
+    } catch (e) {
+      debugPrint("Erro ao ler arquivo compartilhado: $e");
+    }
   }
 
   /// Navega para a aba selecionada no BottomNavigationBar.
@@ -171,12 +211,18 @@ class _TabelaState extends State<Tabela> {
           appBar: AppBar(
             title: Row(
               children: [
-                Text((largura > 350) ? "Tabela de Turno" : "Tabela"),
+                Flexible(
+                  child: Text(
+                    (largura > 350) ? "Tabela de Turno" : "Tabela",
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ),
                 const Spacer(),
                 // Exibe o controle de ano apenas em abas permitidas.
                 Visibility(
                   visible: controleAno,
                   child: Row(
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       IconButton(
                         icon: const Icon(Icons.arrow_left),
