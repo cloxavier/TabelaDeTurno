@@ -155,19 +155,32 @@ class _IntegrantesScreenState extends State<IntegrantesScreen> with SingleTicker
                       itemBuilder: (context, index) {
                         final item = list[index];
                         return Card(
-                          margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                          margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                           child: ListTile(
+                            dense: true,
+                            visualDensity: VisualDensity.compact,
                             leading: CircleAvatar(child: Text(item.nome[0])),
-                            title: Text(item.nome),
+                            title: Text(item.nome, style: const TextStyle(fontWeight: FontWeight.bold)),
                             subtitle: Text("${item.cargo}${item.telefone != null ? ' - ${item.telefone}' : ''}"),
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                IconButton(icon: const Icon(Icons.edit, color: Colors.blue), onPressed: () => _addOrEditIntegrante(item)),
-                                IconButton(icon: const Icon(Icons.delete, color: Colors.red), onPressed: () {
-                                  setState(() => _integrantes.removeWhere((e) => e.id == item.id));
-                                  _saveIntegrantes();
-                                }),
+                                IconButton(
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
+                                  icon: const Icon(Icons.edit, color: Colors.blue, size: 20), 
+                                  onPressed: () => _addOrEditIntegrante(item)
+                                ),
+                                const SizedBox(width: 8),
+                                IconButton(
+                                  padding: EdgeInsets.zero,
+                                  constraints: const BoxConstraints(),
+                                  icon: const Icon(Icons.delete, color: Colors.red, size: 20), 
+                                  onPressed: () {
+                                    setState(() => _integrantes.removeWhere((e) => e.id == item.id));
+                                    _saveIntegrantes();
+                                  }
+                                ),
                               ],
                             ),
                           ),

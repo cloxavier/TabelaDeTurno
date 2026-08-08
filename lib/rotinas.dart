@@ -213,9 +213,11 @@ void mostrarPopupIntegrantes(BuildContext context, String grupoLetra) {
                 itemBuilder: (context, index) {
                   final item = filtrados[index];
                   return ListTile(
+                    dense: true,
+                    visualDensity: VisualDensity.compact,
                     contentPadding: EdgeInsets.zero,
                     leading: const Icon(Icons.person, color: Colors.orange),
-                    title: Text(item.nome),
+                    title: Text(item.nome, style: const TextStyle(fontWeight: FontWeight.w500)),
                     subtitle: Text(item.cargo),
                   );
                 },

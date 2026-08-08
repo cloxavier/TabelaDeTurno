@@ -1,23 +1,27 @@
-# Plano de Implementação: Otimização da Splash Screen
+# Plano de Otimização: Lista de Integrantes (Popup)
 
-Este plano visa melhorar a experiência de inicialização do aplicativo, reduzindo o tempo de espera e corrigindo o posicionamento visual em dispositivos modernos com barras de navegação por gestos (como o S24 Ultra).
+Este plano visa tornar a visualização da equipe mais compacta e eficiente, permitindo ver mais integrantes sem a necessidade de rolar a tela, mantendo a clareza visual.
 
 ## User Review Required
 
-> [!IMPORTANT]
-> **Tempo de Splash**: Reduziremos o atraso artificial de 3 segundos para 1 segundo. Isso mantém o logo visível por um breve momento para carregar as preferências, mas torna a abertura do app muito mais ágil.
->
-> **Ajuste de Margem (S24 Ultra)**: Utilizaremos a propriedade `MediaQuery` para detectar a altura da barra de navegação do sistema. O texto "por Claudio Xavier" será elevado automaticamente para não ficar escondido sob os botões do Android.
+> [!TIP]
+> **Outras Informações**: Respondendo à sua pergunta, o modelo de dados de `Integrante` também possui um campo de **Telefone**. Atualmente ele não é exibido no popup para economizar espaço, mas está salvo no banco de dados.
 
 ## Proposed Changes
 
-### 1. Ajuste de Delay e Layout
-#### [MODIFY] [lib/main.dart](file:///F:/Claudio/Flutter/Projeto%20Tabela%20de%20turno/tabelar_de_turno-editada/lib/main.dart)
-- Alterar `Duration(seconds: 3)` para `Duration(seconds: 1)`.
-- Atualizar a posição do texto do autor para respeitar a `SafeArea` do dispositivo.
+### 1. Compactação da Lista
+#### [MODIFY] [lib/rotinas.dart](file:///F:/Claudio/Flutter/Projeto%20Tabela%20de%20turno/tabelar_de_turno-editada/lib/rotinas.dart)
+- Na função `mostrarPopupIntegrantes`:
+    - Ativar a propriedade `dense: true` no `ListTile`.
+    - Ajustar a `visualDensity` para `VisualDensity.compact`.
+    - Isso reduzirá o espaçamento vertical entre os nomes e cargos, permitindo que grupos maiores caibam na tela.
+
+### 2. Refinamento de Layout
+- Manter o ícone laranja e as cores atuais para preservar a amizade visual da interface.
 
 ## Verification Plan
 
 ### Manual Verification
-- [ ] Abrir o aplicativo e sentir se a transição para a tabela está mais rápida.
-- [ ] Verificar no S24 Ultra se o texto "por Claudio Xavier" agora aparece acima da barra de navegação (gestos ou botões).
+- [ ] Clicar na letra de um grupo na Vista Geral.
+- [ ] Verificar se a lista de integrantes está mais "justa" verticalmente.
+- [ ] Confirmar se a legibilidade continua boa em dispositivos com fontes grandes.

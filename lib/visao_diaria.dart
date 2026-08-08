@@ -178,6 +178,7 @@ class _VisaoDiariaState extends State<VisaoDiaria> {
               ...list.map((i) => Card(
                 child: ListTile(
                   dense: true,
+                  visualDensity: VisualDensity.compact,
                   leading: const Icon(Icons.person, size: 20),
                   title: Text(i.nome, style: const TextStyle(fontWeight: FontWeight.bold)),
                   subtitle: Text(i.cargo),
