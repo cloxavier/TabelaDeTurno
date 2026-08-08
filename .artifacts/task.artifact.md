@@ -3,8 +3,11 @@
 - [x] Converter `ListView` para `SingleChildScrollView` (Sucesso Estrutural)
 - [x] Central de Ajuda Profissional expansível
 - [x] Implementar seção "Sobre o Aplicativo" com foco no Autor
-- [/] Auditoria e Correção de Alarmes e Persistência
-    - [ ] Isolar agendamento de alarmes em `lib/screens/tarefas_screen.dart`
-    - [ ] Impedir cliques duplos no botão Salvar
-    - [ ] Melhorar tratamento de exceções no `NotificationService`
-    - [ ] Validar integridade do arquivo JSON de tarefas
+- [x] Auditoria e Correção de Alarmes e Persistência
+- [/] Modernização Ultra-Clean do Gerenciador de Integrantes
+    - [x] Remover botões físicos redundantes
+    - [x] Implementar Swipe-Right (Editar)
+    - [x] Implementar Swipe-Left (Excluir)
+    - [x] Adicionar atalho de toque rápido para edição
+    - [x] Ajustar Padding de 120px para o S24 Ultra
+    - [ ] Atualizar guia de ajuda com novos gestos

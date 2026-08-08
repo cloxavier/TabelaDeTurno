@@ -49,6 +49,34 @@ class _IntegrantesScreenState extends State<IntegrantesScreen> with SingleTicker
     await LocalStorageService().saveIntegrantes(_integrantes.map((e) => e.toMap()).toList());
   }
 
+  /// Exclui um integrante com confirmação prévia para evitar ações acidentais.
+  Future<bool> _deleteIntegrante(Integrante item) async {
+    bool confirm = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Excluir Integrante?"),
+        content: Text("Tem certeza que deseja remover ${item.nome} da equipe?"),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text("CANCELAR")),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true), 
+            child: const Text("EXCLUIR", style: TextStyle(color: Colors.red))
+          ),
+        ],
+      ),
+    ) ?? false;
+
+    if (confirm) {
+      setState(() => _integrantes.removeWhere((e) => e.id == item.id));
+      await _saveIntegrantes();
+      if (!mounted) return true;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("${item.nome} removido com sucesso."), backgroundColor: Colors.orange),
+      );
+    }
+    return confirm;
+  }
+
   void _addOrEditIntegrante([Integrante? integrante]) {
     final nomeController = TextEditingController(text: integrante?.nome);
     final cargoController = TextEditingController(text: integrante?.cargo);
@@ -148,40 +176,59 @@ class _IntegrantesScreenState extends State<IntegrantesScreen> with SingleTicker
             controller: _tabController,
             children: ['a', 'b', 'c', 'd', 'e', 'f'].sublist(0, numeroDeGrupos).map((g) {
               final list = _integrantes.where((i) => i.grupo == g).toList();
-                return list.isEmpty 
+              return list.isEmpty 
                   ? Center(child: Text("Nenhum integrante no Grupo ${g.toUpperCase()}"))
                   : ListView.builder(
+                      // Espaço de segurança generoso para o S24 Ultra
+                      padding: const EdgeInsets.only(top: 8, bottom: 120),
                       itemCount: list.length,
                       itemBuilder: (context, index) {
                         final item = list[index];
-                        return Card(
-                          margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          child: ListTile(
-                            dense: true,
-                            visualDensity: VisualDensity.compact,
-                            leading: CircleAvatar(child: Text(item.nome[0])),
-                            title: Text(item.nome, style: const TextStyle(fontWeight: FontWeight.bold)),
-                            subtitle: Text("${item.cargo}${item.telefone != null ? ' - ${item.telefone}' : ''}"),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                IconButton(
-                                  padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(),
-                                  icon: const Icon(Icons.edit, color: Colors.blue, size: 20), 
-                                  onPressed: () => _addOrEditIntegrante(item)
-                                ),
-                                const SizedBox(width: 8),
-                                IconButton(
-                                  padding: EdgeInsets.zero,
-                                  constraints: const BoxConstraints(),
-                                  icon: const Icon(Icons.delete, color: Colors.red, size: 20), 
-                                  onPressed: () {
-                                    setState(() => _integrantes.removeWhere((e) => e.id == item.id));
-                                    _saveIntegrantes();
-                                  }
-                                ),
-                              ],
+                        return Dismissible(
+                          key: Key(item.id),
+                          // Permite deslizar para ambos os lados
+                          confirmDismiss: (direction) async {
+                            if (direction == DismissDirection.startToEnd) {
+                              // Deslizou para a DIREITA -> EDITAR
+                              _addOrEditIntegrante(item);
+                              return false; // Não remove o card
+                            } else {
+                              // Deslizou para a ESQUERDA -> EXCLUIR
+                              return await _deleteIntegrante(item);
+                            }
+                          },
+                          // Fundo Azul para Edição (Direita)
+                          background: Container(
+                            alignment: Alignment.centerLeft,
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.blue,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Icon(Icons.edit, color: Colors.white),
+                          ),
+                          // Fundo Vermelho para Exclusão (Esquerda)
+                          secondaryBackground: Container(
+                            alignment: Alignment.centerRight,
+                            padding: const EdgeInsets.symmetric(horizontal: 20),
+                            margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: Colors.red,
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: const Icon(Icons.delete, color: Colors.white),
+                          ),
+                          child: Card(
+                            margin: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                            child: ListTile(
+                              onTap: () => _addOrEditIntegrante(item), // Atalho intuitivo: Toque para editar
+                              dense: true,
+                              visualDensity: VisualDensity.compact,
+                              leading: CircleAvatar(child: Text(item.nome[0])),
+                              title: Text(item.nome, style: const TextStyle(fontWeight: FontWeight.bold)),
+                              subtitle: Text("${item.cargo}${item.telefone != null ? ' - ${item.telefone}' : ''}"),
+                              // Interface Ultra-Clean: Zero botões redundantes
                             ),
                           ),
                         );

@@ -22,7 +22,7 @@ class AjudaScreen extends StatelessWidget {
         categoria: HelpCategory.basico,
         icone: Icons.group,
         titulo: "Gerenciamento de Equipe",
-        conteudo: "Você pode lançar integrantes em cada turno utilizando o gerenciador. O acesso pode ser feito pelo menu lateral, na visão diária ou na visão geral (clicando na letra de cada grupo para ver quem faz parte e chamar o gerenciador).",
+        conteudo: "Para gerenciar sua equipe, toque em um nome para editar ou deslize para os lados: Direita para editar, Esquerda para remover.",
       ),
       HelpTopic(
         categoria: HelpCategory.basico,
