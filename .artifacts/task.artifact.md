@@ -4,10 +4,10 @@
 - [x] Central de Ajuda Profissional expansível
 - [x] Implementar seção "Sobre o Aplicativo" com foco no Autor
 - [x] Auditoria e Correção de Alarmes e Persistência
-- [/] Modernização Ultra-Clean do Gerenciador de Integrantes
-    - [x] Remover botões físicos redundantes
-    - [x] Implementar Swipe-Right (Editar)
-    - [x] Implementar Swipe-Left (Excluir)
-    - [x] Adicionar atalho de toque rápido para edição
-    - [x] Ajustar Padding de 120px para o S24 Ultra
-    - [ ] Atualizar guia de ajuda com novos gestos
+- [x] Modernização Ultra-Clean do Gerenciador de Integrantes
+- [/] Refinamento de Tipografia e Higiene Visual
+    - [x] Implementar `TextOverflow.ellipsis` no Nome
+    - [x] Implementar `TextOverflow.ellipsis` no Cargo
+    - [x] Limitar Nome a 1 linha
+    - [x] Limitar Cargo a 1 linha (ou 2 se necessário)
+    - [x] Padronizar altura dos cards

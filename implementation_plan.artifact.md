@@ -1,35 +1,28 @@
-# Plano de Implementação: Gestos Bidirecionais e Interface Ultra-Clean
+# Plano de Refinamento: Tipografia Adaptativa e Higiene Visual
 
-Este plano visa eliminar a poluição visual no Gerenciador de Integrantes e implementar um sistema de gestos profissional e intuitivo, otimizado para telas de alta densidade como a do S24 Ultra.
+Este plano foca na robustez da interface contra textos longos e na manutenção do design ultra-clean, seguindo os padrões de usabilidade das grandes empresas de tecnologia.
 
 ## User Review Required
 
 > [!IMPORTANT]
-> **Interação Bidirecional**: O usuário poderá deslizar o card para a **DIREITA** para editar e para a **ESQUERDA** para excluir.
+> **Controle de Texto**: Nomes ou cargos muito extensos passarão a usar o efeito "Ellipsis" (...). Isso impede que o texto invada áreas indesejadas ou empurre os limites do cartão, mantendo a grade visual perfeita em qualquer dispositivo.
 >
-> **Zero Botões**: Removeremos todos os ícones de ação de dentro dos cards. Isso deixará a interface extremamente limpa e focada no conteúdo (Nome/Cargo).
->
-> **Acessibilidade**: Manteremos o "Toque" no card como um atalho para edição, garantindo que usuários que não conhecem o gesto de deslizar consigam operar o app sem dificuldades.
+> **Decisão sobre Indicadores**: Seguindo a tendência de design moderno, **não utilizaremos símbolos fixos** como `<>`. A descoberta do gesto de deslizar será confiada à Central de Ajuda e à intuição do usuário, evitando a poluição visual que símbolos extras causariam.
 
 ## Proposed Changes
 
-### 1. Modernização Total da Lista de Equipe
+### 1. Blindagem de Tipografia
 #### [MODIFY] [integrantes_screen.dart](file:///F:/Claudio/Flutter/Projeto%20Tabela%20de%20turno/tabelar_de_turno-editada/lib/screens/integrantes_screen.dart)
-- **Bidirectional Swipe**:
-    - `background`: Azul com ícone `Icons.edit` (aparece ao deslizar para a direita).
-    - `secondaryBackground`: Vermelho com ícone `Icons.delete` (aparece ao deslizar para a esquerda).
-- **Cleanup**: Remover a `Row` de botões (trailing) do `ListTile`.
-- **Redundância Positiva**: Adicionar `onTap: () => _addOrEditIntegrante(item)` diretamente no `ListTile`.
-- **Margens**: Aplicar o mesmo arredondamento e margem aos fundos colorido do gesto para manter a continuidade visual.
+- Adicionar `overflow: TextOverflow.ellipsis` e `maxLines: 1` ao widget de Nome.
+- Adicionar `overflow: TextOverflow.ellipsis` e `maxLines: 1` (ou 2) ao widget de Cargo/Telefone.
+- Isso garante que a interface seja resiliente a entradas de dados exageradas.
 
-### 2. Atualização da Documentação de Ajuda
-#### [MODIFY] [ajuda_screen.dart](file:///F:/Claudio/Flutter/Projeto%20Tabela%20de%20turno/tabelar_de_turno-editada/lib/screens/ajuda_screen.dart)
-- Ajustar o tópico de "Gerenciamento de Equipe" para refletir os novos gestos modernos.
+### 2. Consistência de Altura
+- Garantir que todos os cards da lista tenham a mesma altura visual, independentemente do tamanho do nome, o que transmite uma sensação de ordem e profissionalismo.
 
 ## Verification Plan
 
 ### Manual Verification
-- [ ] Deslizar para a direita e verificar se a janela de edição abre.
-- [ ] Deslizar para a esquerda e verificar se a confirmação de exclusão aparece.
-- [ ] Tocar simplesmente no nome e verificar se a edição abre.
-- [ ] Validar a estética "limpa" no S24 Ultra e no Pixel 7.
+- [ ] Visualizar o integrante com nome longo ("Rita de Cassia...") e verificar se ele termina elegantemente em `...`.
+- [ ] Confirmar se o alinhamento lateral permanece intacto mesmo com nomes curtos.
+- [ ] Testar a rolagem da lista para garantir que a performance continua fluida.

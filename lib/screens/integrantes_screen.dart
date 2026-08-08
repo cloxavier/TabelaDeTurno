@@ -226,8 +226,17 @@ class _IntegrantesScreenState extends State<IntegrantesScreen> with SingleTicker
                               dense: true,
                               visualDensity: VisualDensity.compact,
                               leading: CircleAvatar(child: Text(item.nome[0])),
-                              title: Text(item.nome, style: const TextStyle(fontWeight: FontWeight.bold)),
-                              subtitle: Text("${item.cargo}${item.telefone != null ? ' - ${item.telefone}' : ''}"),
+                              title: Text(
+                                item.nome, 
+                                style: const TextStyle(fontWeight: FontWeight.bold),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
+                              subtitle: Text(
+                                "${item.cargo}${item.telefone != null ? ' - ${item.telefone}' : ''}",
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
+                              ),
                               // Interface Ultra-Clean: Zero botões redundantes
                             ),
                           ),
