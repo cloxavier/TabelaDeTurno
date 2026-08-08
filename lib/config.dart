@@ -116,8 +116,8 @@ class _InterfaceState extends State<Interface> {
                                   flat = !flat;
                                   preferencias[0]["botaoFlat"] = flat;
                                   salvaArquivo();
-                                  // Notifica ouvintes para atualizar sombra
-                                  AppController.instance.notifyListeners();
+                                  // Notifica ouvintes para atualizar sombras e relevos via método seguro
+                                  AppController.instance.updateUI();
                                 });
                               },
                             ),

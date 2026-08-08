@@ -1,35 +1,44 @@
-# Plano de Expansão: Central de Ajuda (Novas Funcionalidades)
+# Plano de Auditoria e Correção: Alarme e Persistência de Tarefas
 
-Este plano visa enriquecer a Central de Ajuda com instruções detalhadas sobre gerenciamento de equipes, uso do menu de eventos e interpretação de indicadores visuais no calendário.
+Este plano detalha a investigação técnica e as correções necessárias para resolver a regressão nos alarmes e a duplicidade de tarefas no banco de dados.
+
+## Auditoria Técnica (Causa Raiz)
+
+Identificamos que a falha ocorre devido a um **acoplamento frágil** na função de salvamento. O aplicativo tenta salvar o dado em disco e agendar a notificação na mesma sequência. Caso o Android bloqueie o agendamento do alarme (comum em Android 14/15 por restrições de economia de bateria ou permissões de alarme exato), uma exceção é lançada.
+
+**Consequências observadas:**
+1.  **Falha no fechamento**: O comando `Navigator.pop(context)` nunca é alcançado porque o código trava no erro do alarme.
+2.  **Duplicidade**: O usuário, vendo que a tela não fechou, clica em "Salvar" novamente, gerando novos registros com IDs diferentes no arquivo JSON.
+3.  **Inconsistência de UI**: As telas de listagem não são atualizadas porque o fluxo foi interrompido antes de chamar o recarregamento dos dados.
 
 ## User Review Required
 
 > [!IMPORTANT]
-> **Fidelidade aos Indicadores**: Ajustaremos a descrição dos indicadores visuais (bolinhas no calendário) para que correspondam exatamente às cores e significados definidos no código (Verde para Feriados, Azul para Eventos/Trocas, Laranja para Tarefas/Horas Extras).
+> **Resiliência de Dados**: O salvamento da tarefa será priorizado. Se o alarme falhar por restrição do sistema, a tarefa ainda assim será salva com sucesso e o usuário será avisado via alerta na tela sobre a permissão de notificação.
 >
-> **Facilidade de Acesso**: Destacaremos as múltiplas formas de acessar o Gerenciador de Integrantes e o Menu de Eventos, reforçando a agilidade da interface.
+> **Permissões de Alarme**: Em aparelhos modernos (Android 14/15), o sistema pode exigir que o usuário habilite manualmente a opção "Alarmes e Lembretes" nas configurações do Android. Adicionaremos um aviso caso isso seja detectado.
 
 ## Proposed Changes
 
-### 1. Atualização da Lista de Tópicos
-#### [MODIFY] [ajuda_screen.dart](file:///F:/Claudio/Flutter/Projeto%20Tabela%20de%20turno/tabelar_de_turno-editada/lib/screens/ajuda_screen.dart)
-- Adicionar novos objetos `HelpTopic` à lista interna:
-    - **Gerenciamento de Equipe**: Explicar o acesso via Drawer, Visão Diária e os atalhos nas letras dos grupos na Visão Geral.
-    - **Menu de Eventos**: Instruir sobre o botão "Ações para este dia" (Diária) e o clique direto nos dias (Mensal/Anual).
-    - **Tipos de Lançamentos**: Detalhar o que são Tarefas, Horas Extras, Férias e Trocas.
-    - **Indicadores Visuais**: Explicar o significado das bolinhas coloridas que aparecem nos cards dos dias.
+### 1. Robustez no Gerenciador de Tarefas
+#### [MODIFY] [lib/screens/tarefas_screen.dart](file:///F:/Claudio/Flutter/Projeto%20Tabela%20de%20turno/tabelar_de_turno-editada/lib/screens/tarefas_screen.dart)
+- Isolar o `NotificationService().scheduleNotification` em um bloco `try-catch` próprio.
+- Garantir que `Navigator.pop(context)` e `_loadData()` ocorram imediatamente após o sucesso do `LocalStorageService().saveTarefas`.
+- Desabilitar visualmente o botão de salvar durante o processamento para evitar cliques duplos.
 
-### 2. Refinamento de Texto
-- Revisar os textos para garantir um tom profissional e instrutivo, seguindo as descrições fornecidas pelo autor.
+### 2. Diagnóstico de Notificações
+#### [MODIFY] [lib/notification_service.dart](file:///F:/Claudio/Flutter/Projeto%20Tabela%20de%20turno/tabelar_de_turno-editada/lib/notification_service.dart)
+- Adicionar logs de erro mais detalhados para capturar falhas de segurança do Android 15.
+- Melhorar a validação de data para garantir que alarmes agendados para o "limite" da hora atual não falhem.
+
+### 3. Sincronização de Cache
+#### [MODIFY] [lib/local_storage_service.dart](file:///F:/Claudio/Flutter/Projeto%20Tabela%20de%20turno/tabelar_de_turno-editada/lib/local_storage_service.dart)
+- Adicionar uma pequena margem de segurança nas operações de escrita para evitar conflitos de leitura simultânea em telas diferentes.
 
 ## Verification Plan
 
 ### Manual Verification
-- [ ] Abrir a tela de ajuda e validar se os novos tópicos aparecem nas categorias corretas.
-- [ ] Verificar se as cores dos indicadores citados na ajuda batem com o que é renderizado no calendário.
-- [ ] Testar a fluidez da leitura no Tema Escuro.
-
-## Git Versioning
-1. `git add .`
-2. `git commit -m "Fase 3: Expansão da Central de Ajuda com detalhes sobre Equipe, Eventos e Indicadores Visuais"`
-3. `git push origin main`
+- [ ] Criar uma nova tarefa com alarme para 1 minuto no futuro.
+- [ ] Forçar um erro de alarme (desabilitando permissões no Android) e verificar se a tarefa é salva mesmo assim.
+- [ ] Verificar se a duplicidade de tarefas (como na imagem enviada) parou de ocorrer ao clicar rapidamente em salvar.
+- [ ] Testar a edição de uma tarefa existente e confirmar se o registro original é atualizado em vez de duplicado.

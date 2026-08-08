@@ -34,4 +34,10 @@ class AppController extends ChangeNotifier{
     estiloCard = style;
     notifyListeners();
   }
+
+  /// Notifica os ouvintes para forçar um redesenho da interface.
+  /// Utilizado para atualizações globais como ativação de sombras ou relevos.
+  void updateUI() {
+    notifyListeners();
+  }
 }

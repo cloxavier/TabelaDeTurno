@@ -112,57 +112,73 @@ class NotificationService {
     debugPrint("   - Título: $title");
     debugPrint("   - Horário: ${DateFormat('dd/MM/yyyy HH:mm:ss').format(scheduledTZ)}");
 
-    await flutterLocalNotificationsPlugin.zonedSchedule(
-      id,
-      title,
-      body,
-      scheduledTZ,
-      NotificationDetails(
-        android: AndroidNotificationDetails(
-          'tarefas_alarme_v3', // Novo canal para som de alarme real
-          'Alarmes de Tarefas',
-          channelDescription: 'Canal para alarmes insistentes de tarefas',
-          importance: Importance.max,
-          priority: Priority.max,
-          ticker: 'ticker',
-          playSound: true,
-          enableVibration: true,
-          fullScreenIntent: true,
-          ongoing: true, // Impede de limpar a notificação enquanto toca
-          autoCancel: false, // Só remove a notificação se clicar no botão
-          timeoutAfter: 120000, // Para de tocar após 2 minutos (proteção de bateria)
-          visibility: NotificationVisibility.public, // Mostra conteúdo na tela de bloqueio
-          additionalFlags: Int32List.fromList(<int>[4]), // FLAG_INSISTENT
-          category: AndroidNotificationCategory.call, // Muda para Call para ser persistente no topo
-          audioAttributesUsage: AudioAttributesUsage.alarm,
-          styleInformation: BigTextStyleInformation(
-            body,
-            contentTitle: title,
-            summaryText: 'Alarme de Tarefa',
+    try {
+      await flutterLocalNotificationsPlugin.zonedSchedule(
+        id,
+        title,
+        body,
+        scheduledTZ,
+        NotificationDetails(
+          android: AndroidNotificationDetails(
+            'tarefas_alarme_v3', // Novo canal para som de alarme real
+            'Alarmes de Tarefas',
+            channelDescription: 'Canal para alarmes insistentes de tarefas',
+            importance: Importance.max,
+            priority: Priority.max,
+            ticker: 'ticker',
+            playSound: true,
+            enableVibration: true,
+            fullScreenIntent: true,
+            ongoing: true, // Impede de limpar a notificação enquanto toca
+            autoCancel: false, // Só remove a notificação se clicar no botão
+            timeoutAfter: 120000, // Para de tocar após 2 minutos (proteção de bateria)
+            visibility: NotificationVisibility.public, // Mostra conteúdo na tela de bloqueio
+            additionalFlags: Int32List.fromList(<int>[4]), // FLAG_INSISTENT
+            category: AndroidNotificationCategory.call, // Muda para Call para ser persistente no topo
+            audioAttributesUsage: AudioAttributesUsage.alarm,
+            styleInformation: BigTextStyleInformation(
+              body,
+              contentTitle: title,
+              summaryText: 'Alarme de Tarefa',
+            ),
+            actions: <AndroidNotificationAction>[
+              const AndroidNotificationAction(
+                'stop_action',
+                'DESLIGAR',
+                cancelNotification: true,
+              ),
+              const AndroidNotificationAction(
+                'snooze_action',
+                'ADIAR 5 MIN',
+              ),
+            ],
           ),
-          actions: <AndroidNotificationAction>[
-            const AndroidNotificationAction(
-              'stop_action',
-              'DESLIGAR',
-              cancelNotification: true,
-            ),
-            const AndroidNotificationAction(
-              'snooze_action',
-              'ADIAR 5 MIN',
-            ),
-          ],
+          iOS: const DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+            interruptionLevel: InterruptionLevel.critical,
+          ),
         ),
-        iOS: const DarwinNotificationDetails(
-          presentAlert: true,
-          presentBadge: true,
-          presentSound: true,
-          interruptionLevel: InterruptionLevel.critical,
-        ),
-      ),
-      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-      uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
-      payload: "$title: $body", // Passa o título e descrição para o Dialog
-    );
+        androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
+        uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
+        payload: "$title: $body", // Passa o título e descrição para o Dialog
+      );
+    } catch (e) {
+      debugPrint("❌ ERRO GRAVE no agendamento: $e");
+      // Se o erro for de permissão de alarme exato, tentamos agendar de forma aproximada como fallback
+      if (e.toString().contains("exact_alarms")) {
+        debugPrint("🔄 Tentando agendamento aproximado (Fallback)...");
+        await flutterLocalNotificationsPlugin.zonedSchedule(
+          id, title, body, scheduledTZ,
+          const NotificationDetails(android: AndroidNotificationDetails('tarefas_alarme_v3', 'Alarmes')),
+          androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+          uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
+        );
+      } else {
+        rethrow; // Repassa outros erros para serem tratados no saveTarefa
+      }
+    }
   }
 
   Future<void> cancelNotification(int id) async {

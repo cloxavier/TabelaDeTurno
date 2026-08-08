@@ -439,7 +439,6 @@ class _TrocasScreenState extends State<TrocasScreen> {
     DateTime? dComp = _dataCompensacao;
 
     // Avisos de folga redundante (Lógica corrigida: foca em quem recebe o trabalho)
-    String meuOriginalD1 = getTurnoPorGrupo(dTrab, _meuGrupoLetra);
     String deleOriginalD1 = getTurnoPorGrupo(dTrab, _grupoColaborador);
     
     // Se eu trabalho para ele, mas ele já está de folga original.

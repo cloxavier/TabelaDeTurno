@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'rotinas.dart';
-import 'dados.dart';
 
 class VisaoAnual extends StatefulWidget {
   final int ano;

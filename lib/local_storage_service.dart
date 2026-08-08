@@ -321,21 +321,25 @@ class LocalStorageService {
         
         // --- CASO 1: Convite de Troca Única ---
         if (package["type"] == "exchange_invite") {
+          if (!context.mounted) return false;
           return await _showExchangeInvitePreview(context, package);
         }
         
         // --- CASO 2: Backup Geral (Dados + Configurações) ---
         if (package.containsKey("data")) {
+          if (!context.mounted) return false;
           return await _showBackupPreview(context, package);
         }
 
         // --- CASO 3: Grupos Selecionados ---
         if (package["type"] == "selective_groups" || package["type"] == "work_groups_and_people") {
+          if (!context.mounted) return false;
           return await _showSelectiveGroupsPreview(context, package);
         }
 
         // --- CASO 4: Setup do App ---
         if (package["type"] == "app_setup") {
+          if (!context.mounted) return false;
           return await _showAppSetupPreview(context, package);
         }
         

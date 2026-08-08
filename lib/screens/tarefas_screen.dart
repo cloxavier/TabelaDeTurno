@@ -228,6 +228,7 @@ class _TarefasScreenState extends State<TarefasScreen> {
         'createdAt': DateTime.now().toIso8601String(),
       };
 
+      // 1. Prioridade Máxima: Salvar no Disco
       final allTarefas = await LocalStorageService().loadTarefas();
       
       if (existingId != null) {
@@ -240,31 +241,42 @@ class _TarefasScreenState extends State<TarefasScreen> {
       await LocalStorageService().saveTarefas(allTarefas);
       await atualizarCache();
 
-      // Gerenciar notificações
-      if (oldNotificationId != null) {
-        await NotificationService().cancelNotification(oldNotificationId);
-      }
-
-      if (_hasAlarm && alarmDateTime.isAfter(DateTime.now())) {
-        String body = _descController.text;
-        if (_antecedenciaMinutos > 0) {
-          body = "Em $_antecedenciaMinutos min: $body";
+      // 2. Gerenciar notificações em bloco isolado para não interromper o salvamento
+      try {
+        if (oldNotificationId != null) {
+          await NotificationService().cancelNotification(oldNotificationId);
         }
-        await NotificationService().scheduleNotification(
-          notificationId,
-          _tituloController.text,
-          body,
-          alarmDateTime,
-        );
+
+        if (_hasAlarm && alarmDateTime.isAfter(DateTime.now())) {
+          String body = _descController.text;
+          if (_antecedenciaMinutos > 0) {
+            body = "Em $_antecedenciaMinutos min: $body";
+          }
+          await NotificationService().scheduleNotification(
+            notificationId,
+            _tituloController.text,
+            body,
+            alarmDateTime,
+          );
+        }
+      } catch (notifErr) {
+        debugPrint("⚠️ Aviso: Falha ao agendar alarme (Provável restrição do Android): $notifErr");
+        // A tarefa já foi salva, apenas notificamos o erro silenciosamente ou via snackbar futuro.
       }
 
+      // 3. Sucesso: Fecha a interface e recarrega a lista
       if (!mounted) return;
-      Navigator.pop(context); // Fecha o dialog
+      Navigator.pop(context); 
       _loadData();
     } catch (e) {
-      debugPrint("Erro ao salvar tarefa: $e");
+      debugPrint("❌ Erro Crítico ao salvar tarefa: $e");
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Erro ao salvar. Verifique se há espaço no disco.")),
+        );
+      }
     } finally {
-      setState(() => _isSaving = false);
+      if (mounted) setState(() => _isSaving = false);
     }
   }
 
