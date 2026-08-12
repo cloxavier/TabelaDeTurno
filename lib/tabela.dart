@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import 'dart:io';
 import 'notification_service.dart';
@@ -18,7 +17,6 @@ import 'visao_semanal.dart'; // Interface visão semanal
 import 'screens/integrantes_screen.dart';
 import 'screens/backup_screen.dart';
 import 'screens/lista_eventos_screen.dart';
-import 'screens/alarme_ringing_screen.dart';
 import 'screens/ajuda_screen.dart';
 import 'rotinas.dart';
 import 'temas.dart';
@@ -34,7 +32,6 @@ class Tabela extends StatefulWidget {
 
 class _TabelaState extends State<Tabela> {
   late PageController _pageController;
-  StreamSubscription? _notificationSubscription;
   StreamSubscription? _intentSub;
   Timer? _midnightTimer;
 
@@ -66,16 +63,33 @@ class _TabelaState extends State<Tabela> {
     // Inicializa visibilidade das barras conforme a página inicial definida.
     atualizaPagina(paginaInicial);
     
-    // Verifica se o aplicativo foi iniciado a partir de uma notificação de alarme.
-    _checkInitialNotification();
-
-    // Escuta eventos de notificação/alarme enquanto o aplicativo estiver em execução.
-    _notificationSubscription = NotificationService().onNotification.listen((response) {
-      _handleNotification(response);
-    });
-
     // Inicia o temporizador para atualização automática na troca de dia (meia-noite).
     _startMidnightTimer();
+
+    // Auditoria de Permissões: Verifica se o alarme tem autoridade para aparecer sobre o bloqueio.
+    WidgetsBinding.instance.addPostFrameCallback((_) => _checkAlarmPermissions());
+  }
+
+  /// Verifica se as permissões vitais para o alarme sobre o bloqueio estão ativas.
+  Future<void> _checkAlarmPermissions() async {
+    if (Platform.isAndroid) {
+      bool hasOverlay = await NotificationService().hasFullScreenPermission();
+      bool hasBatteryIgnored = await NotificationService().isBatteryOptimizationIgnored();
+
+      if (!hasOverlay || !hasBatteryIgnored) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: const Text("Aviso: O alarme pode não aparecer sobre o bloqueio sem permissão de sobreposição."),
+            duration: const Duration(seconds: 8),
+            action: SnackBarAction(
+              label: "CONFIGURAR",
+              onPressed: () => NotificationService().init(),
+            ),
+          ),
+        );
+      }
+    }
   }
 
   /// Gerencia a transição automática de datas quando o relógio atinge a meia-noite.
@@ -119,45 +133,9 @@ class _TabelaState extends State<Tabela> {
     });
   }
 
-  /// Verifica se houve um lançamento de notificação pendente no início do app.
-  Future<void> _checkInitialNotification() async {
-    final launchDetails = await NotificationService().flutterLocalNotificationsPlugin.getNotificationAppLaunchDetails();
-    if (launchDetails?.didNotificationLaunchApp ?? false) {
-      final response = launchDetails?.notificationResponse;
-      if (response != null) {
-        // Aguarda a renderização inicial para garantir que o Navigator esteja disponível.
-        Future.delayed(const Duration(milliseconds: 500), () {
-          if (mounted) _handleNotification(response);
-        });
-      }
-    }
-  }
-
-  /// Encaminha o usuário para a tela de alarme ativo ao receber uma resposta de notificação.
-  void _handleNotification(NotificationResponse response) {
-    // Ações rápidas via botões de notificação são tratadas no serviço.
-    if (response.actionId == 'stop_action') return;
-
-    final parts = (response.payload ?? "Tarefa: Lembrete").split(": ");
-    final title = parts[0];
-    final desc = parts.length > 1 ? parts[1] : "";
-
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => AlarmeRingingScreen(
-          title: title,
-          description: desc,
-          notificationId: response.id ?? 0,
-        ),
-      ),
-    );
-  }
-
   @override
   void dispose() {
     _pageController.dispose();
-    _notificationSubscription?.cancel();
     _intentSub?.cancel();
     _midnightTimer?.cancel();
     super.dispose();

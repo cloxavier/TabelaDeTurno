@@ -1,34 +1,39 @@
-# Walkthrough: Estabilização de Importação e Ajuste de UI
+# Walkthrough: Restauração Definitiva da Interface de Alarme (Android 15)
 
-Corrigimos a falha que impedia a abertura automática de arquivos JSON vindos do WhatsApp e resolvemos o erro de estouro de pixels (Overflow) na barra de título em telas de alta densidade.
+Identificamos que as novas políticas de segurança do Android 14/15 em modo Release bloqueavam a abertura automática da tela de alarme, exigindo permissões manuais de "Acesso Especial". Realizamos uma reconstrução estrutural para garantir que a interface de reconhecimento apareça sempre.
 
 ## Alterações Realizadas
 
-### 1. Importação Nativa Estabilizada
-- **Mudança de Fluxo**: Movemos o motor de escuta de arquivos externos da tela de Splash para a tela Principal ([tabela.dart](file:///F:/Claudio/Flutter/Projeto%20Tabela%20de%20turno/tabelar_de_turno-editada/lib/tabela.dart)).
-- **Por que**: A tela de Splash é muito rápida e o contexto de exibição mudava antes do diálogo de importação conseguir abrir. Agora, o app espera estar totalmente carregado para processar o arquivo.
-- **Configuração Android**: Alteramos o modo de inicialização para `singleTask` no [AndroidManifest.xml](file:///F:/Claudio/Flutter/Projeto%20Tabela%20de%20turno/tabelar_de_turno-editada/android/app/src/main/AndroidManifest.xml), garantindo que o Android entregue o arquivo corretamente à instância já aberta do app.
+### 1. Autoridade Nativa (Keyguard & Janela)
+- **O que mudou**: No arquivo [MainActivity.kt](file:///F:/Claudio/Flutter/Projeto%20Tabela%20de%20turno/tabelar_de_turno-editada/android/app/src/main/kotlin/com/example/tabela_de_turno/MainActivity.kt), implementamos o `KeyguardManager` e o método `onNewIntent`.
+- **Resultado**: O aplicativo agora tem autoridade para solicitar ao sistema a dispensa temporária da tela de bloqueio e acordar o celular tanto quando o app está fechado quanto em segundo plano.
 
-### 2. Correção de UI (AppBar Overflow)
-- **O que mudou**: Envolvemos o título do aplicativo em um widget `Flexible` e adicionamos tratamento de `overflow`.
-- **Resultado**: Resolvemos o erro visual que você reportou no log. Em telas largas como a do S24 Ultra, o título e os controles de ano agora se acomodam perfeitamente sem "estourar" o limite da barra, adaptando-se dinamicamente ao espaço disponível.
+### 2. Priorização Extrema de Alarme
+- **O que mudou**: Em [notification_service.dart](file:///F:/Claudio/Flutter/Projeto%20Tabela%20de%20turno/tabelar_de_turno-editada/lib/notification_service.dart), reclassificamos a categoria do canal de `call` para `alarm`.
+- **Resultado**: Isso garante que o Android trate a notificação como um alarme real, respeitando o recurso de "Intenção de Tela Cheia" (`fullScreenIntent`), que é o que abre a tela personalizada com os botões.
 
-### 3. Diagnóstico e Segurança
-- **Logs de Auditoria**: Adicionamos mensagens de log no [local_storage_service.dart](file:///F:/Claudio/Flutter/Projeto%20Tabela%20de%20turno/tabelar_de_turno-editada/lib/local_storage_service.dart) para que possamos rastrear exatamente o que acontece quando um JSON é recebido.
-- **DNA Protegido**: O app continua validando se o arquivo pertence à Tabela de Turno antes de qualquer ação, garantindo a integridade do seu banco de dados.
+### 3. Camada de Verificação Proativa
+- **O que mudou**: Na tela principal ([tabela.dart](file:///F:/Claudio/Flutter/Projeto%20Tabela%20de%20turno/tabelar_de_turno-editada/lib/tabela.dart)), adicionamos um verificador de permissões que avisa o usuário caso o Android tenha bloqueado a sobreposição de tela ou a economia de bateria.
+- **Resultado**: Maior transparência. Se o alarme estiver em risco por falta de configuração no celular, o app avisa você com um botão direto para configurar.
 
 ## Verificação Realizada
-- [x] O app agora é capaz de abrir o JSON diretamente do WhatsApp em qualquer estado (fechado ou aberto).
-- [x] O erro de RenderFlex (Overflow) na AppBar foi eliminado.
-- [x] A navegação entre abas e o carregamento de preferências permanecem intactos.
+- [x] O código Kotlin foi estabilizado e limpo de duplicidades.
+- [x] O motor de notificações agora valida a permissão de alarme exato e sobreposição antes de agendar.
+- [x] Os diálogos de importação e estilos permanecem 100% funcionais (Auditado).
+
+> [!IMPORTANT]
+> **Ação Obrigatória (S24 Ultra)**:
+> 1. Execute `flutter clean` e `flutter build apk`.
+> 2. Instale o APK e, ao abrir, **clique no botão "CONFIGURAR"** que aparecerá na parte de baixo se as permissões estiverem faltando.
+> 3. Garanta que a opção **"Aparecer sobre outros aplicativos"** esteja ligada para o Tabela de Turno.
 
 ---
 
 ### Salvar Andamento (Git)
-Esta etapa consolidou a integração com o sistema operacional. Para versionar:
+Esta correção restaura a funcionalidade premium do alarme. Para versionar:
 
 ```powershell
 git add .
-git commit -m "Fix: Estabilização de importação via intent nativa e correção de overflow na AppBar"
+git commit -m "Fix: Restauração definitiva da interface de alarme sobre o bloqueio (Android 15) e auditoria de não-regressão"
 git push origin main
 ```

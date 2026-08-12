@@ -6,9 +6,11 @@
 - [x] Auditoria e Correção de Alarmes e Persistência
 - [x] Modernização Ultra-Clean do Gerenciador de Integrantes
 - [x] Refinamento de Tipografia e Higiene Visual
-- [/] Implementação da Funcionalidade "Abrir com" (Importação Direta)
-    - [ ] Adicionar dependência `receive_sharing_intent` no `pubspec.yaml`
-    - [ ] Configurar `intent-filter` no `AndroidManifest.xml`
-    - [ ] Implementar motor de validação de DNA em `LocalStorageService`
-    - [ ] Configurar listener de captura na inicialização do app (`main.dart`)
-    - [ ] Testar importação direta via WhatsApp e via Arquivo
+- [x] Implementação da Funcionalidade "Abrir com" (Importação Direta)
+- [x] Estabilização do Motor de Compilação (Java 17/Gradle)
+- [/] Reconstrução Definitiva do Alarme (Operação Alarme Real)
+    - [ ] Migrar payload para JSON em `notification_service.dart`
+    - [ ] Implementar `AppRoot` e `navigatorKey` em `main.dart`
+    - [ ] Adicionar flags nativas em `MainActivity.kt`
+    - [ ] Desativar temporariamente minificação para diagnóstico
+    - [ ] Validar integridade e compilação

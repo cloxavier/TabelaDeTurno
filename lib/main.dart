@@ -1,43 +1,121 @@
 import 'dart:convert';
 import 'dart:async';
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:tabela_de_turno/dados.dart';
 import 'package:tabela_de_turno/rotinas.dart';
 import 'package:tabela_de_turno/tabela.dart';
 import 'package:tabela_de_turno/temas.dart';
 import 'package:tabela_de_turno/notification_service.dart';
-import 'package:tabela_de_turno/local_storage_service.dart';
-import 'package:intl/date_symbol_data_local.dart';
+import 'package:tabela_de_turno/screens/alarme_ringing_screen.dart';
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
 
+  final notificationService = NotificationService();
   
   // Inicializa o serviço de notificações/alarmes
-  await NotificationService().init();
+  await notificationService.init();
   
   // Inicializa formatação de datas em português
   await initializeDateFormatting('pt_BR', null);
 
+  // Verifica se o aplicativo foi iniciado através de um alarme (Cold Start)
+  final NotificationAppLaunchDetails? launchDetails = 
+      await notificationService.flutterLocalNotificationsPlugin.getNotificationAppLaunchDetails();
+
+  NotificationResponse? initialNotification;
+  if (launchDetails?.didNotificationLaunchApp == true) {
+    initialNotification = launchDetails?.notificationResponse;
+  }
+
   // Anima mudanças de estado no App ex.: Tema escuro/claro
-  runApp(AnimatedBuilder(
-    animation: AppController.instance,
-    builder: (context, child) {
-      return MaterialApp(
-        debugShowCheckedModeBanner: false,
-        title: 'Tabela de Turno',
-        theme: ThemeData(
-          brightness: AppController.instance.temaDark ? Brightness.dark : Brightness.light,
-          primarySwatch: Colors.orange,
+  runApp(AppRoot(initialNotification: initialNotification));
+}
+
+class AppRoot extends StatefulWidget {
+  final NotificationResponse? initialNotification;
+  const AppRoot({super.key, this.initialNotification});
+
+  @override
+  State<AppRoot> createState() => _AppRootState();
+}
+
+class _AppRootState extends State<AppRoot> {
+  StreamSubscription<NotificationResponse>? _notificationSubscription;
+
+  @override
+  void initState() {
+    super.initState();
+
+    // Escuta novas notificações enquanto o app está aberto
+    _notificationSubscription = NotificationService().onNotification.listen(_handleNotification);
+
+    // Se o app foi aberto por um alarme, processa a navegação após a build inicial
+    if (widget.initialNotification != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _handleNotification(widget.initialNotification!);
+      });
+    }
+  }
+
+  void _handleNotification(NotificationResponse response) {
+    // Se for ação de botão, o service já tratou ou tratará
+    if (response.actionId == 'stop_action' || response.actionId == 'snooze_action') return;
+
+    String title = 'Alarme';
+    String body = '';
+    int id = response.id ?? 0;
+
+    try {
+      final data = jsonDecode(response.payload ?? '{}');
+      title = data['title'] ?? 'Alarme';
+      body = data['body'] ?? '';
+      id = data['id'] ?? id;
+    } catch (e) {
+      debugPrint('Erro lendo payload no AppRoot: $e');
+    }
+
+    // Salta direto para a tela de alarme sobre qualquer tela atual
+    navigatorKey.currentState?.push(
+      MaterialPageRoute(
+        builder: (_) => AlarmeRingingScreen(
+          title: title,
+          description: body,
+          notificationId: id,
         ),
-        home: const Home(),
-      );
-    },
-  ));
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _notificationSubscription?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: AppController.instance,
+      builder: (context, child) {
+        return MaterialApp(
+          navigatorKey: navigatorKey,
+          debugShowCheckedModeBanner: false,
+          title: 'Tabela de Turno',
+          theme: ThemeData(
+            brightness: AppController.instance.temaDark ? Brightness.dark : Brightness.light,
+            primarySwatch: Colors.orange,
+          ),
+          home: const Home(),
+        );
+      },
+    );
+  }
 }
 
 class Home extends StatefulWidget {

@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:timezone/timezone.dart' as tz;
@@ -69,15 +70,18 @@ class NotificationService {
       onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
     );
     
+    final androidPlugin = flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+
     // Solicita permissão de Notificação (janelinha popup)
-    await flutterLocalNotificationsPlugin
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-        ?.requestNotificationsPermission();
+    await androidPlugin?.requestNotificationsPermission();
         
     // Solicita permissão de Alarme Exato (leva para a tela de configurações)
-    await flutterLocalNotificationsPlugin
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
-        ?.requestExactAlarmsPermission();
+    await androidPlugin?.requestExactAlarmsPermission();
+
+    // No Android 14+, a permissão de Full Screen Intent é obrigatória via código
+    // para que a tela de alarme apareça sobre o bloqueio em modo Release.
+    await androidPlugin?.requestFullScreenIntentPermission();
 
     // Solicita exclusão de otimização de bateria (Crucial para Samsung S24)
     if (await Permission.ignoreBatteryOptimizations.isDenied) {
@@ -95,22 +99,35 @@ class NotificationService {
     return await Permission.ignoreBatteryOptimizations.isGranted;
   }
 
+  /// Verifica se a permissão de sobreposição (vital para o alarme no Android 15) está ativa.
+  Future<bool> hasFullScreenPermission() async {
+    return await Permission.systemAlertWindow.isGranted;
+  }
+
   Future<void> scheduleNotification(int id, String title, String body, DateTime scheduledDate) async {
     final tz.TZDateTime scheduledTZ = tz.TZDateTime.from(scheduledDate, tz.local);
     final tz.TZDateTime nowTZ = tz.TZDateTime.now(tz.local);
 
     // Validação básica: não agenda no passado (usando fuso horário local)
     if (scheduledTZ.isBefore(nowTZ)) {
-      debugPrint("❌ Erro: Tentativa de agendar alarme no passado:");
-      debugPrint("   - Agora no App: ${DateFormat('dd/MM/yyyy HH:mm:ss').format(nowTZ)}");
-      debugPrint("   - Tentativa:   ${DateFormat('dd/MM/yyyy HH:mm:ss').format(scheduledTZ)}");
+      debugPrint("❌ Erro: Tentativa de agendar alarme no passado.");
       return;
     }
 
-    debugPrint("🔔 Agendando alarme:");
-    debugPrint("   - ID: $id");
-    debugPrint("   - Título: $title");
-    debugPrint("   - Horário: ${DateFormat('dd/MM/yyyy HH:mm:ss').format(scheduledTZ)}");
+    final androidPlugin = flutterLocalNotificationsPlugin
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
+
+    // No Android 14+, precisamos verificar se a permissão de alarme exato ainda está ativa.
+    if (androidPlugin != null) {
+      final bool? isAllowed = await androidPlugin.canScheduleExactNotifications();
+      if (isAllowed == false) {
+        debugPrint("⚠️ Permissão de alarme exato revogada. Solicitando ao usuário...");
+        await androidPlugin.requestExactAlarmsPermission();
+        return; 
+      }
+    }
+
+    debugPrint("🔔 Agendando alarme ($id) para: ${DateFormat('dd/MM/yyyy HH:mm:ss').format(scheduledTZ)}");
 
     try {
       await flutterLocalNotificationsPlugin.zonedSchedule(
@@ -120,22 +137,18 @@ class NotificationService {
         scheduledTZ,
         NotificationDetails(
           android: AndroidNotificationDetails(
-            'tarefas_alarme_v3', // Novo canal para som de alarme real
+            'tarefas_alarme_v4', // Novo canal para garantir reset de configurações no Android
             'Alarmes de Tarefas',
-            channelDescription: 'Canal para alarmes insistentes de tarefas',
+            channelDescription: 'Canal para alarmes de tarefas sobre o bloqueio',
             importance: Importance.max,
             priority: Priority.max,
-            ticker: 'ticker',
-            playSound: true,
-            enableVibration: true,
             fullScreenIntent: true,
-            ongoing: true, // Impede de limpar a notificação enquanto toca
-            autoCancel: false, // Só remove a notificação se clicar no botão
-            timeoutAfter: 120000, // Para de tocar após 2 minutos (proteção de bateria)
-            visibility: NotificationVisibility.public, // Mostra conteúdo na tela de bloqueio
-            additionalFlags: Int32List.fromList(<int>[4]), // FLAG_INSISTENT
-            category: AndroidNotificationCategory.call, // Muda para Call para ser persistente no topo
+            category: AndroidNotificationCategory.alarm,
             audioAttributesUsage: AudioAttributesUsage.alarm,
+            ongoing: true,
+            autoCancel: false,
+            visibility: NotificationVisibility.public,
+            additionalFlags: Int32List.fromList(<int>[4]), // FLAG_INSISTENT
             styleInformation: BigTextStyleInformation(
               body,
               contentTitle: title,
@@ -162,7 +175,11 @@ class NotificationService {
         ),
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
         uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
-        payload: "$title: $body", // Passa o título e descrição para o Dialog
+        payload: jsonEncode({
+          'id': id,
+          'title': title,
+          'body': body,
+        }),
       );
     } catch (e) {
       debugPrint("❌ ERRO GRAVE no agendamento: $e");
@@ -176,7 +193,7 @@ class NotificationService {
           uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
         );
       } else {
-        rethrow; // Repassa outros erros para serem tratados no saveTarefa
+        rethrow; 
       }
     }
   }
@@ -190,15 +207,22 @@ class NotificationService {
   }
 
   void handleSnoozeFromResponse(NotificationResponse response) {
-    cancelNotification(response.id ?? 0);
-    
-    // Extrai título e descrição do payload
-    final parts = (response.payload ?? "Tarefa: Lembrete").split(": ");
-    final title = parts[0];
-    final body = parts.length > 1 ? parts[1] : "";
+    final int id = response.id ?? 0;
+    cancelNotification(id);
+
+    String title = 'Tarefa';
+    String body = 'Lembrete';
+
+    try {
+      final data = jsonDecode(response.payload ?? '{}');
+      title = data['title'] ?? 'Tarefa';
+      body = data['body'] ?? 'Lembrete';
+    } catch (e) {
+      debugPrint('Erro ao interpretar payload do alarme: $e');
+    }
 
     // Reagenda para daqui a 5 minutos
     final DateTime snoozeTime = DateTime.now().add(const Duration(minutes: 5));
-    scheduleNotification(response.id ?? 0, title, body, snoozeTime);
+    scheduleNotification(id, title, body, snoozeTime);
   }
 }
