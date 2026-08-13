@@ -12,8 +12,7 @@ class MainActivity : FlutterActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         
-        // Configurações para exibir o aplicativo sobre a tela de bloqueio
-        // e acordar o dispositivo quando uma notificação de alarme disparar.
+        // Garante a exibição sobre o bloqueio e acorda o dispositivo (Android 15+).
         turnScreenOnAndKeyguard()
     }
 
@@ -24,8 +23,7 @@ class MainActivity : FlutterActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        // Garante que novas intenções (como alarmes disparados com app aberto) 
-        // recebam autoridade para exibir sobre o bloqueio.
+        // Garante autoridade para novas intenções de alarme.
         turnScreenOnAndKeyguard()
     }
 

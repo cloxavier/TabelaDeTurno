@@ -1,4 +1,4 @@
-# Regras de Proteção para o Tabela de Turno
+# Regras de Proteção Ultra-Garantidas para o Tabela de Turno
 
 # Manter a MainActivity e classes do projeto para garantir o Full Screen Intent
 -keep class br.com.xavier.tabela_de_turno.** { *; }
@@ -11,17 +11,17 @@
 # Ignorar avisos da Play Store Core (destrava a build R8)
 -dontwarn com.google.android.play.core.**
 
-# Flutter Local Notifications - Essencial para que o alarme toque no modo Release
+# Flutter Local Notifications - PROTEÇÃO TOTAL para alarmes no modo Release
 -keep class com.dexterous.flutterlocalnotifications.** { *; }
 -keep class com.dexterous.flutterlocalnotifications.models.** { *; }
+-keep class com.dexterous.flutterlocalnotifications.NotificationService { *; }
+-keep class com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver { *; }
+-keep class com.dexterous.flutterlocalnotifications.ScheduledNotificationBootReceiver { *; }
 
-# Receive Sharing Intent - Essencial para a importação direta via WhatsApp
--keep class com.wish.receive_sharing_intent.** { *; }
-
-# GSON - Essencial para a serialização dos alarmes em modo Release
--keep class com.google.gson.** { *; }
+# GSON - Crucial para que o Android não "esqueça" os botões e detalhes do alarme
 -keepattributes Signature
 -keepattributes *Annotation*
+-keep class com.google.gson.** { *; }
 -keep class com.google.gson.reflect.TypeToken
 -keep class * extends com.google.gson.TypeToken
 -keep class * implements com.google.gson.TypeAdapterFactory

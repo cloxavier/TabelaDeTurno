@@ -8,9 +8,10 @@
 - [x] Refinamento de Tipografia e Higiene Visual
 - [x] Implementação da Funcionalidade "Abrir com" (Importação Direta)
 - [x] Estabilização do Motor de Compilação (Java 17/Gradle)
-- [/] Reconstrução Definitiva do Alarme (Operação Alarme Real)
-    - [ ] Migrar payload para JSON em `notification_service.dart`
-    - [ ] Implementar `AppRoot` e `navigatorKey` em `main.dart`
-    - [ ] Adicionar flags nativas em `MainActivity.kt`
-    - [ ] Desativar temporariamente minificação para diagnóstico
-    - [ ] Validar integridade e compilação
+- [x] Restauração da Tela de Alarme sobre Bloqueio (Correção Definitiva)
+- [/] Polimento Premium para S24 Ultra (Modo Desbloqueado)
+    - [ ] Migrar para Canal v9 (Reset de Sistema)
+    - [ ] Remover BigTextStyle para liberar espaço de botões
+    - [ ] Corrigir erro de "evaluated" no build.gradle.kts
+    - [ ] Silenciar avisos de Java 8 no log de build
+    - [ ] Adicionar import faltante em MainActivity.kt
