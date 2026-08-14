@@ -71,8 +71,12 @@ class _TabelaState extends State<Tabela> {
   }
 
   /// Verifica se as permissões vitais para o alarme sobre o bloqueio estão ativas.
+  /// Só exibe o aviso se realmente houver algo pendente que impeça o alarme de funcionar.
   Future<void> _checkAlarmPermissions() async {
     if (Platform.isAndroid) {
+      // Pequeno atraso para dar tempo ao sistema operacional de processar as permissões da Splash Screen
+      await Future.delayed(const Duration(milliseconds: 500));
+      
       bool hasOverlay = await NotificationService().hasFullScreenPermission();
       bool hasBatteryIgnored = await NotificationService().isBatteryOptimizationIgnored();
 
@@ -80,11 +84,13 @@ class _TabelaState extends State<Tabela> {
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: const Text("Aviso: O alarme pode não aparecer sobre o bloqueio sem permissão de sobreposição."),
-            duration: const Duration(seconds: 8),
+            backgroundColor: Colors.grey.shade900,
+            content: const Text("Aviso: O alarme pode falhar sobre o bloqueio sem permissão de sobreposição."),
+            duration: const Duration(seconds: 6),
             action: SnackBarAction(
               label: "CONFIGURAR",
-              onPressed: () => NotificationService().init(),
+              textColor: Colors.orange,
+              onPressed: () => NotificationService().requestSpecialPermissions(),
             ),
           ),
         );

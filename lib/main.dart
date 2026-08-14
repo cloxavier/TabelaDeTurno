@@ -134,8 +134,31 @@ class _HomeState extends State<Home> {
       DeviceOrientation.portraitDown
     ]);
 
-    // Reduzido o delay de 3s para 1s para tornar a abertura mais ágil.
-    Future.delayed(const Duration(seconds: 1)).then((value) {
+    // Executa a inicialização de alarmes silenciosa e permissões se necessário.
+    Future.delayed(const Duration(seconds: 1)).then((value) async {
+      if (!mounted) return;
+      
+      // Carrega preferências primeiro para saber se já pedimos permissão
+      String prefData = await leArquivo();
+      bool jaPediu = false;
+      if (prefData.isNotEmpty) {
+        final dt = jsonDecode(prefData);
+        jaPediu = (dt[0]["askedPermissions"] == true);
+      }
+
+      // Prepara o motor (silencioso)
+      await NotificationService().init();
+
+      // Pede permissões invasivas APENAS na primeira vez (ou se não pediu ainda)
+      if (!jaPediu) {
+        await NotificationService().requestSpecialPermissions();
+        // Marca que já pedimos para não incomodar no próximo boot
+        if (preferencias.isNotEmpty) {
+          preferencias[0]["askedPermissions"] = true;
+          await salvaArquivo();
+        }
+      }
+
       if (!mounted) return;
       
       // Inicializa variáveis globais com a data de hoje
@@ -155,13 +178,13 @@ class _HomeState extends State<Home> {
       }
       
       // Carrega eventos e tarefas antes de abrir a tabela principal
-      atualizarCache().then((_) {
-        if (!mounted) return;
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const Tabela())
-        );
-      });
+      await atualizarCache();
+      
+      if (!mounted) return;
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const Tabela())
+      );
     });
 
     // Lê e define as preferências salvas

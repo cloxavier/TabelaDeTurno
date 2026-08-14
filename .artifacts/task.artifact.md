@@ -9,9 +9,8 @@
 - [x] Implementação da Funcionalidade "Abrir com" (Importação Direta)
 - [x] Estabilização do Motor de Compilação (Java 17/Gradle)
 - [x] Restauração da Tela de Alarme sobre Bloqueio (Correção Definitiva)
-- [/] Polimento Premium para S24 Ultra (Modo Desbloqueado)
-    - [ ] Migrar para Canal v9 (Reset de Sistema)
-    - [ ] Remover BigTextStyle para liberar espaço de botões
-    - [ ] Corrigir erro de "evaluated" no build.gradle.kts
-    - [ ] Silenciar avisos de Java 8 no log de build
-    - [ ] Adicionar import faltante em MainActivity.kt
+- [/] Otimização de UX: Fluxo de Permissões "First-Run"
+    - [ ] Mover solicitação de permissão para a Splash Screen (`main.dart`)
+    - [ ] Garantir que o app aguarde a configuração inicial
+    - [ ] Remover Snackbar de aviso repetitivo em `lib/tabela.dart`
+    - [ ] Validar integridade da navegação pós-permissão

@@ -29,6 +29,8 @@ class NotificationService {
   final StreamController<NotificationResponse> _onNotificationStream = StreamController<NotificationResponse>.broadcast();
   Stream<NotificationResponse> get onNotification => _onNotificationStream.stream;
 
+  /// Prepara o motor de notificações sem abrir janelas de configuração do sistema.
+  /// Chamado sempre no início do app para garantir que os alarmes possam ser ouvidos.
   Future<void> init() async {
     tz.initializeTimeZones();
     final String timeZoneName = (await FlutterTimezone.getLocalTimezone()).identifier;
@@ -55,7 +57,11 @@ class NotificationService {
       },
       onDidReceiveBackgroundNotificationResponse: notificationTapBackground,
     );
-    
+  }
+
+  /// Solicita as permissões invasivas (Bateria e Sobreposição) de forma proativa.
+  /// Chamado apenas na primeira execução (Onboarding) ou via botão CONFIGURAR.
+  Future<void> requestSpecialPermissions() async {
     final androidPlugin = flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
 
@@ -65,6 +71,9 @@ class NotificationService {
 
     if (await Permission.ignoreBatteryOptimizations.isDenied) {
       await Permission.ignoreBatteryOptimizations.request();
+    }
+    if (await Permission.systemAlertWindow.isDenied) {
+      await Permission.systemAlertWindow.request();
     }
   }
 
