@@ -149,7 +149,12 @@ void mostrarMenuEventos(BuildContext context, DateTime data, String turno) {
             const Divider(),
             _botaoMenu(context, "Compartilhar Escala", Colors.blue, () {
               String texto = gerarEscalaTexto(data);
-              Share.share(texto, subject: "Escala de Turno - ${DateFormat('dd/MM').format(data)}");
+              SharePlus.instance.share(
+                ShareParams(
+                  text: texto, 
+                  subject: "Escala de Turno - ${DateFormat('dd/MM').format(data)}"
+                )
+              );
             }),
           ],
         ),

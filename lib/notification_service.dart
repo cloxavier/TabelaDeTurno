@@ -6,7 +6,6 @@ import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:flutter_timezone/flutter_timezone.dart';
 import 'package:permission_handler/permission_handler.dart';
-// import 'package:intl/intl.dart'; // Removido import não utilizado
 
 @pragma('vm:entry-point')
 void notificationTapBackground(NotificationResponse response) async {
@@ -29,12 +28,15 @@ class NotificationService {
   final StreamController<NotificationResponse> _onNotificationStream = StreamController<NotificationResponse>.broadcast();
   Stream<NotificationResponse> get onNotification => _onNotificationStream.stream;
 
-  /// Prepara o motor de notificações sem abrir janelas de configuração do sistema.
-  /// Chamado sempre no início do app para garantir que os alarmes possam ser ouvidos.
   Future<void> init() async {
     tz.initializeTimeZones();
-    final String timeZoneName = (await FlutterTimezone.getLocalTimezone()).identifier;
-    tz.setLocalLocation(tz.getLocation(timeZoneName));
+    
+    try {
+      final String timeZoneName = (await FlutterTimezone.getLocalTimezone()).identifier;
+      tz.setLocalLocation(tz.getLocation(timeZoneName));
+    } catch (e) {
+      debugPrint("⚠️ Erro de Timezone no emulador/sistema: $e. Aplicando fallback.");
+    }
     
     const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
     const DarwinInitializationSettings initializationSettingsIOS = DarwinInitializationSettings(
@@ -46,7 +48,7 @@ class NotificationService {
     );
 
     await flutterLocalNotificationsPlugin.initialize(
-      initializationSettings,
+      settings: initializationSettings,
       onDidReceiveNotificationResponse: (NotificationResponse response) {
         _onNotificationStream.add(response);
         if (response.actionId == 'stop_action') {
@@ -59,8 +61,6 @@ class NotificationService {
     );
   }
 
-  /// Solicita as permissões invasivas (Bateria e Sobreposição) de forma proativa.
-  /// Chamado apenas na primeira execução (Onboarding) ou via botão CONFIGURAR.
   Future<void> requestSpecialPermissions() async {
     final androidPlugin = flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
@@ -97,9 +97,8 @@ class NotificationService {
 
     final String payload = jsonEncode({'id': id, 'title': title, 'body': body});
 
-    // Configuração baseada na paridade do commit e26b561 para garantir visual detalhado.
     final androidDetails = AndroidNotificationDetails(
-      'tarefas_alarme_v10', // Reset v10 para garantir leitura de novos parâmetros
+      'tarefas_alarme_v11', 
       'Escala: Alarmes de Tarefas',
       channelDescription: 'Alarmes críticos de alta prioridade',
       importance: Importance.max,
@@ -108,24 +107,20 @@ class NotificationService {
       ongoing: true,
       autoCancel: false,
       visibility: NotificationVisibility.public,
-      additionalFlags: Int32List.fromList(<int>[4]), // FLAG_INSISTENT
-      category: AndroidNotificationCategory.call, // Restaurado categoria Call do commit e26b561
+      additionalFlags: Int32List.fromList(<int>[4]), 
+      category: AndroidNotificationCategory.call,
       audioAttributesUsage: AudioAttributesUsage.alarm,
-      styleInformation: BigTextStyleInformation(
-        body,
-        contentTitle: title,
-        summaryText: 'Alarme Ativo',
-      ),
-      actions: <AndroidNotificationAction>[
-        const AndroidNotificationAction('stop_action', 'DESLIGAR', cancelNotification: true),
-        const AndroidNotificationAction('snooze_action', 'ADIAR 5 MIN'),
-      ],
+      styleInformation: BigTextStyleInformation(body, contentTitle: title, summaryText: 'Alarme Ativo'),
+      actions: _buildActions(),
     );
 
     try {
       await flutterLocalNotificationsPlugin.zonedSchedule(
-        id, title, body, scheduledTZ,
-        NotificationDetails(
+        id: id,
+        title: title,
+        body: body,
+        scheduledDate: scheduledTZ,
+        notificationDetails: NotificationDetails(
           android: androidDetails,
           iOS: const DarwinNotificationDetails(
             presentAlert: true, presentBadge: true, presentSound: true,
@@ -133,22 +128,30 @@ class NotificationService {
           ),
         ),
         androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle,
-        uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
         payload: payload,
       );
     } catch (e) {
-      debugPrint("❌ Fallback para agendamento inexato (v10): $e");
+      debugPrint("❌ Fallback para agendamento inexato: $e");
       await flutterLocalNotificationsPlugin.zonedSchedule(
-        id, title, body, scheduledTZ,
-        NotificationDetails(android: androidDetails),
+        id: id,
+        title: title,
+        body: body,
+        scheduledDate: scheduledTZ,
+        notificationDetails: NotificationDetails(android: androidDetails),
         androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
-        uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
         payload: payload,
       );
     }
   }
 
-  Future<void> cancelNotification(int id) async => await flutterLocalNotificationsPlugin.cancel(id);
+  List<AndroidNotificationAction> _buildActions() {
+    return <AndroidNotificationAction>[
+      const AndroidNotificationAction('stop_action', 'DESLIGAR', cancelNotification: true),
+      const AndroidNotificationAction('snooze_action', 'ADIAR 5 MIN'),
+    ];
+  }
+
+  Future<void> cancelNotification(int id) async => await flutterLocalNotificationsPlugin.cancel(id: id);
 
   void _handleSnooze(NotificationResponse response) => handleSnoozeFromResponse(response);
 

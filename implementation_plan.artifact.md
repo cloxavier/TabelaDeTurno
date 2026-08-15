@@ -1,38 +1,22 @@
-# Plano de Estabilização Final: Interface Premium e Build Impecável
+# Plano de Correção: Atualização da Biblioteca de Desugaring (Java 8+)
 
-Este plano visa resolver o problema dos botões ocultos na notificação e eliminar definitivamente o erro de ciclo de vida do Gradle, consolidando as melhores práticas do Android 15.
+Este plano visa resolver o erro de compilação causado pela atualização do plugin `flutter_local_notifications` para a versão 22.3.0. Esta versão exige uma biblioteca de suporte a Java moderno mais atualizada para funcionar corretamente em dispositivos Android.
 
-## User Review Required
+## Causa Raiz do Erro
 
-> [!IMPORTANT]
-> **Simplificação de Notificação**: Removeremos o `BigTextStyleInformation`. Essa mudança dá "fôlego" para o sistema Android exibir os botões de ação (Desligar/Adiar) imediatamente no banner superior sem que eles fiquem escondidos sob uma seta.
->
-> **Reset de Configurações (v9)**: Moveremos o alarme para o canal **`tarefas_alarme_v9`**. É obrigatório desinstalar o app antigo antes de testar para que o Android aceite esta nova configuração de prioridade máxima.
+O erro `requires desugar_jdk_libs version to be 2.1.4 or above` ocorre porque as novas versões do plugin de notificações utilizam recursos avançados do Java que não estavam presentes na versão `2.0.4` que o projeto utilizava. O Android precisa dessa "tradução" (desugaring) para garantir que o alarme funcione de forma estável.
 
 ## Proposed Changes
 
-### 1. Refinamento de Notificações (Efeito "Heads-up" Persistente)
-#### [MODIFY] [notification_service.dart](file:///F:/Claudio/Flutter/Projeto%20Tabela%20de%20turno/tabelar_de_turno-editada/lib/notification_service.dart)
-- Atualizar o ID do canal para `tarefas_alarme_v9`.
-- Remover a propriedade `styleInformation`.
-- Garantir que `ongoing: true`, `autoCancel: false`, `importance: Importance.max` e `priority: Priority.max` estejam configurados para forçar o banner a ser estático.
-
-### 2. Correção de Build (Gradle 8.14)
-#### [MODIFY] [android/build.gradle.kts](file:///F:/Claudio/Flutter/Projeto%20Tabela%20de%20turno/tabelar_de_turno-editada/android/build.gradle.kts)
-- Remover o bloco `afterEvaluate` problemático.
-- Aplicar a configuração de Java 17 em nível de `allprojects` e `subprojects` utilizando a sintaxe `tasks.withType<JavaCompile>`. Isso garantirá que todos os plugins, inclusive os que geram avisos, usem o Java 17.
-
-### 3. Correção de Compilação Nativa
-#### [MODIFY] [MainActivity.kt](file:///F:/Claudio/Flutter/Projeto%20Tabela%20de%20turno/tabelar_de_turno-editada/android/app/src/main/kotlin/com/example/tabela_de_turno/MainActivity.kt)
-- Adicionar o import `import android.content.Intent` para estabilizar o método `onNewIntent`.
+### 1. Atualização do Motor de Compilação Android
+#### [MODIFY] [build.gradle.kts](file:///F:/Claudio/Flutter/Projeto%20Tabela%20de%20turno/tabelar_de_turno-editada/android/app/build.gradle.kts)
+- Alterar a versão da dependência `coreLibraryDesugaring` de `2.0.4` para **`2.1.4`**.
 
 ## Verification Plan
 
 ### Automated Tests
-1. Executar `flutter clean` e `flutter build apk`.
-2. O log deve estar limpo de erros de "evaluated" e avisos de "Java 8 obsolete".
+1. Executar `flutter run` para garantir que o processo de compilação ultrapasse a fase de verificação de metadados AAR.
+2. Executar `flutter build apk` para confirmar que a build final está íntegra.
 
 ### Manual Verification
-1. Instalar o novo APK (v9).
-2. Agendar alarme para 1 minuto.
-3. Com o celular desbloqueado, verificar se o banner aparece com os botões visíveis de imediato.
+- Validar se o aplicativo abre e se o alarme continua funcionando normalmente (o desugaring é vital para a precisão do agendamento).

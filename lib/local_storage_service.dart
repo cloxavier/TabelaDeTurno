@@ -239,9 +239,12 @@ class LocalStorageService {
         "👤 *Colaborador*: ${exchangeData['parceiroNome']}\n\n"
         "Segue o arquivo anexo para você importar no seu aplicativo e atualizar sua escala automaticamente!";
 
-    await Share.shareXFiles(
-      [XFile(file.path)],
-      text: friendlyText,
+    // Atualizado para SharePlus v13.x
+    await SharePlus.instance.share(
+      ShareParams(
+        text: friendlyText,
+        files: [XFile(file.path)],
+      ),
     );
   }
 
@@ -278,7 +281,12 @@ class LocalStorageService {
     final file = File('${tempDir.path}/${prefix}_Backup_Total_$dateSuffix.json');
     await file.writeAsString(jsonString);
 
-    await Share.shareXFiles([XFile(file.path)]);
+    // Atualizado para SharePlus v13.x
+    await SharePlus.instance.share(
+      ShareParams(
+        files: [XFile(file.path)],
+      ),
+    );
   }
 
   /// Compartilha as configurações de interface e o grupo de trabalho favorito.
@@ -302,19 +310,27 @@ class LocalStorageService {
     await file.writeAsString(jsonString);
 
     String shareText = nomeUsuario.isNotEmpty ? "Configurações do App de $nomeUsuario" : "Minhas configurações do App Tabela de Turno";
-    await Share.shareXFiles([XFile(file.path)], text: shareText);
+    
+    // Atualizado para SharePlus v13.x
+    await SharePlus.instance.share(
+      ShareParams(
+        text: shareText,
+        files: [XFile(file.path)],
+      ),
+    );
   }
 
   /// Restaura dados a partir de um arquivo JSON selecionado pelo usuário.
   /// Implementa o Preview de Importação e detecção de diferentes tipos de pacotes.
   Future<bool> importData(BuildContext context) async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
+    // Atualizado para FilePicker v12.0.0
+    final List<PlatformFile> files = await FilePicker.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['json'],
     );
 
-    if (result != null) {
-      File file = File(result.files.single.path!);
+    if (files.isNotEmpty) {
+      File file = File(files.first.path!);
       String content = await file.readAsString();
       try {
         Map<String, dynamic> package = json.decode(content);
@@ -678,13 +694,21 @@ class LocalStorageService {
       await file.writeAsString(jsonString);
 
       String shareText = nomeUsuario.isNotEmpty ? "Dados de equipe enviados por $nomeUsuario" : "Dados de equipe do App Tabela de Turno";
-      await Share.shareXFiles([XFile(file.path)], text: shareText);
+      
+      // Atualizado para SharePlus v13.x
+      await SharePlus.instance.share(
+        ShareParams(
+          text: shareText,
+          files: [XFile(file.path)],
+        ),
+      );
     } else {
       String text = await gerarTextoEquipe(groupLetters);
       if (nomeUsuario.isNotEmpty) {
         text = "👤 *Enviado por*: $nomeUsuario\n\n$text";
       }
-      await Share.share(text);
+      // Atualizado para SharePlus v13.x
+      await SharePlus.instance.share(ShareParams(text: text));
     }
   }
 }
