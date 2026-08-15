@@ -1,16 +1,14 @@
-- [x] Validar persistência e nomenclatura dinâmica
-- [x] Autoscroll reativo à navegação (Visibility Listener)
-- [x] Converter `ListView` para `SingleChildScrollView` (Sucesso Estrutural)
-- [x] Central de Ajuda Profissional expansível
-- [x] Implementar seção "Sobre o Aplicativo" com foco no Autor
-- [x] Auditoria e Correção de Alarmes e Persistência
-- [x] Modernização Ultra-Clean do Gerenciador de Integrantes
-- [x] Refinamento de Tipografia e Higiene Visual
-- [x] Implementação da Funcionalidade "Abrir com" (Importação Direta)
-- [x] Estabilização do Motor de Compilação (Java 17/Gradle)
-- [x] Restauração da Tela de Alarme sobre Bloqueio (Correção Definitiva)
-- [/] Otimização de UX: Fluxo de Permissões "First-Run"
-    - [ ] Mover solicitação de permissão para a Splash Screen (`main.dart`)
-    - [ ] Garantir que o app aguarde a configuração inicial
-    - [ ] Remover Snackbar de aviso repetitivo em `lib/tabela.dart`
-    - [ ] Validar integridade da navegação pós-permissão
+# Tarefas: Restauração de Fidelidade e Estabilização do Alarme (Passo a Passo)
+
+- [x] **Passo 1: Blindagem de Dados (JSON Payload)**
+    - [x] Atualizar `lib/notification_service.dart` para usar `jsonEncode`.
+    - [x] Atualizar `lib/main.dart` para usar `jsonDecode`.
+    - [x] Validar funcionamento de caracteres especiais no título/corpo.
+- [/] **Passo 2: Autoridade Nativa (Fim do pedido de Digital)**
+    - [x] Limpar `android/app/src/main/kotlin/.../MainActivity.kt` (Reversão para classe vazia).
+    - [ ] Validar que o alarme não solicita digital/padrão ao disparar bloqueado.
+- [ ] **Passo 3: Inteligência de Inicialização (Cold Start)**
+    - [ ] Implementar `navigatorKey` e `AppRoot` no `lib/main.dart`.
+- [ ] **Passo 4: Auditoria Final e Build**
+    - [ ] Executar `dart analyze` para garantir zero erros.
+    - [ ] Gerar APK Release para teste de campo.

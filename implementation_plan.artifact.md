@@ -1,25 +1,22 @@
-# Plano de Auditoria e Modernização Segura: Etapa 1 (JSON Payload)
+# Plano de Auditoria e Modernização Segura: Etapa 2 (Fim da Digital)
 
-Este plano foca na modernização da troca de mensagens interna do alarme, substituindo strings frágeis por pacotes JSON robustos. Esta é uma mudança de "infraestrutura de dados" e não altera o comportamento visual ou nativo.
+Este plano foca na restauração do comportamento nativo do Android para exibir o alarme sobre a tela de bloqueio sem solicitar biometria (digital ou padrão), retornando à simplicidade estrutural do commit `aa58ce4`.
 
 ## Auditoria de Impacto e Não-Regressão
 
-1.  **Notification Service**:
-    - **Origem**: `scheduleNotification` passará a embalar o título e corpo em JSON.
-    - **Reação**: `handleSnoozeFromResponse` será atualizado para decodificar JSON. Isso preserva a função de Adiar 5 Minutos.
-2.  **Tabela Principal**:
-    - **Escuta**: O listener de notificações em `tabela.dart` será atualizado.
-    - **Garantia de Erro**: Se o app receber uma notificação antiga (texto puro), a auditoria prevê um bloco `try-catch` que evita o crash e exibe um texto padrão.
+1.  **MainActivity (Nativo)**:
+    - **Ação**: Remover o código Kotlin customizado, especificamente o `requestDismissKeyguard`.
+    - **Por que**: Este comando solicita o "destrancamento" do sistema, o que obriga o Android 15 a pedir a digital. Voltaremos ao modo "Overlay" puro, onde o app apenas se sobrepõe ao bloqueio.
+2.  **Zero Impacto Lateral**:
+    - Esta mudança é restrita ao arquivo `.kt`. Não afeta o JSON Payload (Etapa 1), a Central de Ajuda, os Estilos ou a persistência de dados.
 
 ## Proposed Changes (Aguardando Autorização)
 
-### [MODIFY] [notification_service.dart](file:///F:/Claudio/Flutter/Projeto%20Tabela%20de%20turno/tabelar_de_turno-editada/lib/notification_service.dart)
-- Implementar `jsonEncode` no envio e `jsonDecode` no retorno do Snooze.
-
-### [MODIFY] [tabela.dart](file:///F:/Claudio/Flutter/Projeto%20Tabela%20de%20turno/tabelar_de_turno-editada/lib/tabela.dart)
-- Atualizar o método `_handleNotification` para interpretar o novo formato de dados JSON.
+### [MODIFY] [MainActivity.kt](file:///F:/Claudio/Flutter/Projeto%20Tabela%20de%20turno/tabelar_de_turno-editada/android/app/src/main/kotlin/com/example/tabela_de_turno/MainActivity.kt)
+- Reverter para a estrutura original de classe vazia:
+  `class MainActivity : FlutterActivity()`
 
 ## Verification Plan
-- [ ] Validar que alarmes criados após a mudança exibem títulos com caracteres especiais (ex: dois pontos) sem erros.
-- [ ] Confirmar que o botão "Adiar" continua reagendando a tarefa corretamente.
-- [ ] Executar `dart analyze` para garantir zero erros de tipagem.
+- [ ] Validar que no Cenário A (App em background + Bloqueado), a tela de alarme surge sem pedir senha.
+- [ ] Confirmar que o clique em "DESLIGAR" ou "ADIAR" funciona direto da tela de bloqueio.
+- [ ] Executar `flutter build apk` para garantir que o script de build permanece íntegro.
