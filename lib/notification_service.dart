@@ -28,14 +28,14 @@ class NotificationService {
   final StreamController<NotificationResponse> _onNotificationStream = StreamController<NotificationResponse>.broadcast();
   Stream<NotificationResponse> get onNotification => _onNotificationStream.stream;
 
+  /// Prepara o motor de notificações de forma silenciosa.
   Future<void> init() async {
     tz.initializeTimeZones();
-    
     try {
       final String timeZoneName = (await FlutterTimezone.getLocalTimezone()).identifier;
       tz.setLocalLocation(tz.getLocation(timeZoneName));
     } catch (e) {
-      debugPrint("⚠️ Erro de Timezone no emulador/sistema: $e. Aplicando fallback.");
+      debugPrint("⚠️ Erro de Timezone: $e. Aplicando fallback.");
     }
     
     const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('@mipmap/ic_launcher');
@@ -61,6 +61,7 @@ class NotificationService {
     );
   }
 
+  /// Solicita permissões de alto nível (Bateria e Sobreposição) se necessário.
   Future<void> requestSpecialPermissions() async {
     final androidPlugin = flutterLocalNotificationsPlugin
         .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>();
@@ -80,6 +81,7 @@ class NotificationService {
   Future<bool> isBatteryOptimizationIgnored() async => await Permission.ignoreBatteryOptimizations.isGranted;
   Future<bool> hasFullScreenPermission() async => await Permission.systemAlertWindow.isGranted;
 
+  /// Agenda uma notificação de alarme utilizando JSON para transporte seguro de dados.
   Future<void> scheduleNotification(int id, String title, String body, DateTime scheduledDate) async {
     final tz.TZDateTime scheduledTZ = tz.TZDateTime.from(scheduledDate, tz.local);
     if (scheduledTZ.isBefore(tz.TZDateTime.now(tz.local))) return;
@@ -95,6 +97,7 @@ class NotificationService {
       }
     }
 
+    // Etapa 1: Embalagem de dados em JSON para evitar erros com caracteres especiais.
     final String payload = jsonEncode({'id': id, 'title': title, 'body': body});
 
     final androidDetails = AndroidNotificationDetails(
@@ -155,18 +158,22 @@ class NotificationService {
 
   void _handleSnooze(NotificationResponse response) => handleSnoozeFromResponse(response);
 
+  /// Decodifica o payload JSON para realizar o reagendamento (Snooze).
   void handleSnoozeFromResponse(NotificationResponse response) {
     final int id = response.id ?? 0;
     cancelNotification(id);
+
     String title = 'Tarefa';
     String body = 'Lembrete';
+
     try {
       final data = jsonDecode(response.payload ?? '{}');
       title = data['title'] ?? 'Tarefa';
       body = data['body'] ?? 'Lembrete';
     } catch (e) {
-      debugPrint('Erro no payload do snooze: $e');
+      debugPrint('Erro ao interpretar payload no Snooze: $e');
     }
+
     final DateTime snoozeTime = DateTime.now().add(const Duration(minutes: 5));
     scheduleNotification(id, title, body, snoozeTime);
   }

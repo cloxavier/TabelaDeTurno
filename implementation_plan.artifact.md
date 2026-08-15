@@ -1,22 +1,25 @@
-# Plano de Correção: Atualização da Biblioteca de Desugaring (Java 8+)
+# Plano de Auditoria e Modernização Segura: Etapa 1 (JSON Payload)
 
-Este plano visa resolver o erro de compilação causado pela atualização do plugin `flutter_local_notifications` para a versão 22.3.0. Esta versão exige uma biblioteca de suporte a Java moderno mais atualizada para funcionar corretamente em dispositivos Android.
+Este plano foca na modernização da troca de mensagens interna do alarme, substituindo strings frágeis por pacotes JSON robustos. Esta é uma mudança de "infraestrutura de dados" e não altera o comportamento visual ou nativo.
 
-## Causa Raiz do Erro
+## Auditoria de Impacto e Não-Regressão
 
-O erro `requires desugar_jdk_libs version to be 2.1.4 or above` ocorre porque as novas versões do plugin de notificações utilizam recursos avançados do Java que não estavam presentes na versão `2.0.4` que o projeto utilizava. O Android precisa dessa "tradução" (desugaring) para garantir que o alarme funcione de forma estável.
+1.  **Notification Service**:
+    - **Origem**: `scheduleNotification` passará a embalar o título e corpo em JSON.
+    - **Reação**: `handleSnoozeFromResponse` será atualizado para decodificar JSON. Isso preserva a função de Adiar 5 Minutos.
+2.  **Tabela Principal**:
+    - **Escuta**: O listener de notificações em `tabela.dart` será atualizado.
+    - **Garantia de Erro**: Se o app receber uma notificação antiga (texto puro), a auditoria prevê um bloco `try-catch` que evita o crash e exibe um texto padrão.
 
-## Proposed Changes
+## Proposed Changes (Aguardando Autorização)
 
-### 1. Atualização do Motor de Compilação Android
-#### [MODIFY] [build.gradle.kts](file:///F:/Claudio/Flutter/Projeto%20Tabela%20de%20turno/tabelar_de_turno-editada/android/app/build.gradle.kts)
-- Alterar a versão da dependência `coreLibraryDesugaring` de `2.0.4` para **`2.1.4`**.
+### [MODIFY] [notification_service.dart](file:///F:/Claudio/Flutter/Projeto%20Tabela%20de%20turno/tabelar_de_turno-editada/lib/notification_service.dart)
+- Implementar `jsonEncode` no envio e `jsonDecode` no retorno do Snooze.
+
+### [MODIFY] [tabela.dart](file:///F:/Claudio/Flutter/Projeto%20Tabela%20de%20turno/tabelar_de_turno-editada/lib/tabela.dart)
+- Atualizar o método `_handleNotification` para interpretar o novo formato de dados JSON.
 
 ## Verification Plan
-
-### Automated Tests
-1. Executar `flutter run` para garantir que o processo de compilação ultrapasse a fase de verificação de metadados AAR.
-2. Executar `flutter build apk` para confirmar que a build final está íntegra.
-
-### Manual Verification
-- Validar se o aplicativo abre e se o alarme continua funcionando normalmente (o desugaring é vital para a precisão do agendamento).
+- [ ] Validar que alarmes criados após a mudança exibem títulos com caracteres especiais (ex: dois pontos) sem erros.
+- [ ] Confirmar que o botão "Adiar" continua reagendando a tarefa corretamente.
+- [ ] Executar `dart analyze` para garantir zero erros de tipagem.

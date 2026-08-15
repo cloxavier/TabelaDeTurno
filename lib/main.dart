@@ -63,6 +63,7 @@ class _AppRootState extends State<AppRoot> {
     }
   }
 
+  /// Auditoria de Etapa 1: Decodifica o JSON para abrir a tela de alarme.
   void _handleNotification(NotificationResponse response) {
     // Se for ação de botão, o service já tratou ou tratará
     if (response.actionId == 'stop_action' || response.actionId == 'snooze_action') return;
@@ -77,7 +78,13 @@ class _AppRootState extends State<AppRoot> {
       body = data['body'] ?? '';
       id = data['id'] ?? id;
     } catch (e) {
-      debugPrint('Erro lendo payload no AppRoot: $e');
+      debugPrint('Erro lendo payload no AppRoot: $e. Tentando ler como texto simples.');
+      // Fallback para notificações antigas que ainda usavam texto simples
+      if (response.payload != null && response.payload!.contains(": ")) {
+        final parts = response.payload!.split(": ");
+        title = parts[0];
+        body = parts.length > 1 ? parts[1] : "";
+      }
     }
 
     // Salta direto para a tela de alarme sobre qualquer tela atual
