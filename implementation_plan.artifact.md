@@ -1,22 +1,27 @@
-# Plano de Auditoria e Modernização Segura: Etapa 2 (Fim da Digital)
+# Plano de Auditoria e Modernização Segura: Etapa 3 (Inteligência de Prioridade)
 
-Este plano foca na restauração do comportamento nativo do Android para exibir o alarme sobre a tela de bloqueio sem solicitar biometria (digital ou padrão), retornando à simplicidade estrutural do commit `aa58ce4`.
+Este plano visa eliminar o conflito de navegação onde a tela de Tabela "atropela" a tela de Alarme durante a inicialização (Cold Start), garantindo que o usuário consiga reconhecer o alarme sem interrupções.
 
-## Auditoria de Impacto e Não-Regressão
+## Auditoria Técnica: O "Atropelamento" de Telas
 
-1.  **MainActivity (Nativo)**:
-    - **Ação**: Remover o código Kotlin customizado, especificamente o `requestDismissKeyguard`.
-    - **Por que**: Este comando solicita o "destrancamento" do sistema, o que obriga o Android 15 a pedir a digital. Voltaremos ao modo "Overlay" puro, onde o app apenas se sobrepõe ao bloqueio.
-2.  **Zero Impacto Lateral**:
-    - Esta mudança é restrita ao arquivo `.kt`. Não afeta o JSON Payload (Etapa 1), a Central de Ajuda, os Estilos ou a persistência de dados.
+O problema ocorre porque dois processos de navegação iniciam simultaneamente:
+1.  **Processo A (Alarme)**: O `AppRoot` detecta a notificação inicial e abre a `AlarmeRingingScreen`.
+2.  **Processo B (Splash)**: A classe `Home` inicia seu timer de 1 segundo para carregar o cache e abrir a `Tabela`.
+
+Atualmente, o **Processo B** sempre vence, pois ele executa um `pushReplacement`, substituindo qualquer tela que o alarme tenha aberto.
 
 ## Proposed Changes (Aguardando Autorização)
 
-### [MODIFY] [MainActivity.kt](file:///F:/Claudio/Flutter/Projeto%20Tabela%20de%20turno/tabelar_de_turno-editada/android/app/src/main/kotlin/com/example/tabela_de_turno/MainActivity.kt)
-- Reverter para a estrutura original de classe vazia:
-  `class MainActivity : FlutterActivity()`
+### [MODIFY] [lib/main.dart](file:///F:/Claudio/Flutter/Projeto%20Tabela%20de%20turno/tabelar_de_turno-editada/lib/main.dart)
+- **NavigatorKey**: Implementar a chave global de navegação para permitir saltos de tela seguros.
+- **Semaforização**: Criar a variável `bool isAlarmActive = false`.
+- **Filtro de Navegação**: Na função `initState` da classe `Home`, adicionar uma verificação: se `isAlarmActive` for verdadeiro, o timer da Splash Screen será cancelado ou ignorado.
+- **Resultado**: A tela de alarme ganha prioridade absoluta no boot.
+
+### [MODIFY] [lib/notification_service.dart](file:///F:/Claudio/Flutter/Projeto%20Tabela%20de%20turno/tabelar_de_turno-editada/lib/notification_service.dart)
+- Adicionar uma pequena função para resetar o estado `isAlarmActive` quando o alarme for desligado ou adiado.
 
 ## Verification Plan
-- [ ] Validar que no Cenário A (App em background + Bloqueado), a tela de alarme surge sem pedir senha.
-- [ ] Confirmar que o clique em "DESLIGAR" ou "ADIAR" funciona direto da tela de bloqueio.
-- [ ] Executar `flutter build apk` para garantir que o script de build permanece íntegro.
+- [ ] Validar que no Hard Kill + Bloqueio, a tela de alarme aparece e **não é substituída** pela Tabela.
+- [ ] Confirmar que o fluxo normal (abrir o app pelo ícone) continua funcionando em 1 segundo.
+- [ ] Verificar se após desligar o alarme, o usuário consegue navegar para a Tabela normalmente.

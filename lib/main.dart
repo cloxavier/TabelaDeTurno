@@ -11,6 +11,9 @@ import 'package:tabela_de_turno/temas.dart';
 import 'package:tabela_de_turno/notification_service.dart';
 import 'package:tabela_de_turno/screens/alarme_ringing_screen.dart';
 
+// Semáforo global para priorizar a tela de alarme sobre a Splash Screen
+bool isAlarmActive = false;
+
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> main() async {
@@ -86,6 +89,9 @@ class _AppRootState extends State<AppRoot> {
         body = parts.length > 1 ? parts[1] : "";
       }
     }
+
+    // Marca o semáforo para bloquear o cronômetro da Splash Screen
+    isAlarmActive = true;
 
     // Salta direto para a tela de alarme sobre qualquer tela atual
     navigatorKey.currentState?.push(
@@ -188,10 +194,17 @@ class _HomeState extends State<Home> {
       await atualizarCache();
       
       if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const Tabela())
-      );
+
+      // Auditoria de Etapa 3: Só abre a Tabela se não houver um alarme em andamento.
+      // Isso impede que a grade de turnos "atropele" a tela de reconhecimento.
+      if (!isAlarmActive) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const Tabela())
+        );
+      } else {
+        debugPrint("🚦 Navegação da Splash bloqueada: Alarme detectado como prioridade.");
+      }
     });
 
     // Lê e define as preferências salvas

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:tabela_de_turno/main.dart';
 import 'package:timezone/timezone.dart' as tz;
 import 'package:timezone/data/latest.dart' as tz;
 import 'package:flutter_timezone/flutter_timezone.dart';
@@ -154,13 +155,21 @@ class NotificationService {
     ];
   }
 
-  Future<void> cancelNotification(int id) async => await flutterLocalNotificationsPlugin.cancel(id: id);
+  Future<void> cancelNotification(int id) async {
+    // Reset do semáforo global para liberar a navegação do app
+    isAlarmActive = false;
+    await flutterLocalNotificationsPlugin.cancel(id: id);
+  }
 
   void _handleSnooze(NotificationResponse response) => handleSnoozeFromResponse(response);
 
   /// Decodifica o payload JSON para realizar o reagendamento (Snooze).
   void handleSnoozeFromResponse(NotificationResponse response) {
     final int id = response.id ?? 0;
+    
+    // Reset do semáforo global para liberar a navegação do app
+    isAlarmActive = false;
+    
     cancelNotification(id);
 
     String title = 'Tarefa';
