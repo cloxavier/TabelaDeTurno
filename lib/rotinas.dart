@@ -264,10 +264,7 @@ Color getCorTurno(String turno) {
 /// [cardDia] é o componente central da tabela, responsável por renderizar 
 /// cada célula do calendário. Possui dois estilos visuais e é altamente 
 /// adaptável ao contexto de visualização (Diária, Semanal, Mensal, Anual, Geral).
-/// [cardDia] é o componente central da tabela, responsável por renderizar 
-/// cada célula do calendário. Possui dois estilos visuais e é altamente 
-/// adaptável ao contexto de visualização (Diária, Semanal, Mensal, Anual, Geral).
-/// 
+///
 /// [indice] - Posição do dia na sequência de turnos.
 /// [dm] - Dia do mês (texto).
 /// [ds] - Dia da semana abreviado.
@@ -330,10 +327,10 @@ Widget cardDia(int indice, String dm, String ds, Color corDaBarra,
                 child: (tipo == "aa") 
                   ? Stack(
                       children: [
-                        // Camada de Indicadores (Bolinhas) no canto superior esquerdo (Opção 1)
+                        // Camada de Indicadores (Bolinhas) no canto superior esquerdo (Ajuste Fino: 1px top)
                         if (hasHoliday || hasEvent || hasTask)
                           Positioned(
-                            top: 0,
+                            top: 1,
                             left: 0,
                             child: Row(
                               children: [
@@ -343,14 +340,14 @@ Widget cardDia(int indice, String dm, String ds, Color corDaBarra,
                               ],
                             ),
                           ),
-                        // Camada de Texto do Turno (Tamanho 18 e Centro Absoluto)
+                        // Camada de Texto do Turno (Tamanho 17 e Centro Absoluto)
                         Center(
                           child: Text(
                             tabela[indice], 
                             style: TextStyle(
                               color: (corDaBarra == desabilitado) ? desabilitado : cor,
                               fontWeight: FontWeight.bold,
-                              fontSize: 18, 
+                              fontSize: 17, 
                             ),
                           ),
                         ),
