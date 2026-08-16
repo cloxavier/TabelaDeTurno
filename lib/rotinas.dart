@@ -331,9 +331,9 @@ Widget cardDia(int indice, String dm, String ds, Color corDaBarra,
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   mainAxisSize: MainAxisSize.max,
                   children: [
-                    // Topo: Dia da Semana e Indicadores
+                    // Topo: Dia da Semana e Indicadores (ou apenas indicadores na Visão Anual)
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: (tipo == "aa") ? MainAxisAlignment.center : MainAxisAlignment.spaceBetween,
                       children: [
                         if (tipo != "aa" && diaSemanVisivel)
                           Text(ds, style: TextStyle(
@@ -351,33 +351,40 @@ Widget cardDia(int indice, String dm, String ds, Color corDaBarra,
                           ),
                       ],
                     ),
-                    // Centro: Número do Dia (Foco Principal)
-                    // Expanded + FittedBox garantem que o número caiba sem estourar o card.
+                    // Centro: Número do Dia ou Letra do Turno Centralizada
                     Expanded(
                       child: Center(
                         child: FittedBox(
                           fit: BoxFit.contain,
-                          child: Text(dm, textAlign: TextAlign.center, style: TextStyle(
-                            color: (corDaBarra == Colors.amber) 
-                                ? Colors.amber 
-                                : (corDaBarra == desabilitado) 
-                                    ? corDaBarra 
-                                    : (isTemaDark ? Colors.white : Colors.black),
-                            fontWeight: FontWeight.bold,
-                            fontSize: (full != true) ? tamanhoFonteData : 60,
-                          )),
+                          child: (tipo == "aa")
+                            ? Text(tabela[indice], style: TextStyle(
+                                color: (corDaBarra == desabilitado) ? corDaBarra : cor,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 24, // Destaque centralizado na Visão Anual
+                              ))
+                            : Text(dm, textAlign: TextAlign.center, style: TextStyle(
+                                color: (corDaBarra == Colors.amber) 
+                                    ? Colors.amber 
+                                    : (corDaBarra == desabilitado) 
+                                        ? corDaBarra 
+                                        : (isTemaDark ? Colors.white : Colors.black),
+                                fontWeight: FontWeight.bold,
+                                fontSize: (full != true) ? tamanhoFonteData : 60,
+                              )),
                         ),
                       ),
                     ),
-                    // Rodapé: Letra do Turno
-                    Container(
-                      alignment: Alignment.bottomRight,
-                      child: Text(tabela[indice], style: TextStyle(
-                        color: (corDaBarra == desabilitado) ? corDaBarra : cor,
-                        fontWeight: FontWeight.bold,
-                        fontSize: (full != true) ? 12 : 30,
-                      )),
-                    ),
+                    // Rodapé: Letra do Turno (Oculto na Visão Anual para evitar duplicidade)
+                    if (tipo != "aa")
+                      Container(
+                        alignment: Alignment.bottomRight,
+                        child: Text(tabela[indice], style: TextStyle(
+                          color: (corDaBarra == desabilitado) ? corDaBarra : cor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: (full != true) ? 12 : 30,
+                        )),
+                      ),
+                    if (tipo == "aa") const SizedBox(height: 2), // Margem de respiro inferior
                   ],
                 ),
               ),

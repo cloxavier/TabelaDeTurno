@@ -1,25 +1,35 @@
-# Plano de Implementação: Loop de Sincronia Inteligente (Fase 4.2)
+# Plano de Debate: Refinamentos de Layout e Estratégia de Evolução
 
-Este plano visa dar fluidez total ao aplicativo após o reconhecimento do alarme, utilizando uma técnica de "Espera Ativa Assíncrona" que garante que o app retome a navegação para a Tabela assim que o alarme for resolvido.
+Este documento serve como base para o debate das 5 sugestões de melhoria, classificadas por risco de regressão e impacto funcional.
 
-## Auditoria de Segurança e Performance
+## Classificação de Risco (Regras de Ouro Aplicadas)
 
-1.  **Não-Bloqueante**: O loop utilizará `await Future.delayed`, o que libera a Thread principal do Flutter para manter o celular fluido e economizar bateria enquanto aguarda.
-2.  **Fim do Estado Estático**: Resolvemos o problema de o app ficar parado na Splash Screen após o Hard Kill, pois o código agora tem ordens explícitas para "checar e seguir viagem".
-3.  **Não-Regressão**: Manteremos a `MainActivity.kt` limpa e o JSON Payload íntegro, preservando as conquistas das etapas anteriores.
+### 🟢 Baixo Risco (Mudanças Visuais e de Texto)
+1.  **Item 5: Redundância na Visão Anual**: Remover a exibição do dia do mês dentro do card de turno quando visualizado na tabela anual (`tipo == "aa"`).
+2.  **Item 4: Logo no Menu Lateral**: Ajustar o `DrawerHeader` para evitar que o logo apareça cortado.
+3.  **Item 3: Central de Ajuda**: Adicionar novos tópicos e realizar ajustes simples em textos existentes.
 
-## Proposed Changes (Aguardando Autorização)
+### 🟡 Médio Risco (Infraestrutura)
+4.  **Item 1: Flutter Upgrade**: O sistema sugere atualização. Exige auditoria para confirmar se a versão nova (provavelmente Flutter 3.45+) não quebra o motor de notificações que acabamos de estabilizar.
 
-### [MODIFY] [lib/main.dart](file:///F:/Claudio/Flutter/Projeto%20Tabela%20de%20turno/tabelar_de_turno-editada/lib/main.dart)
-- Manter o semáforo `bool isAlarmActive = false`.
-- Na classe `Home`, implementar um loop de verificação assíncrona dentro do `initState`.
-- Adicionar uma trava de segurança (timeout) para que o loop não dure mais de 10 minutos em caso de erro.
+### 🔴 Alto Risco (Lógica de Negócio e Dados)
+5.  **Item 2: Mudanças em Férias e Horas Extras**: Refatoração profunda em telas de lançamento que lidam com cálculos e persistência de arquivos. Exige auditoria linha a linha e backup prévio.
 
-### [MODIFY] [lib/notification_service.dart](file:///F:/Claudio/Flutter/Projeto%20Tabela%20de%20turno/tabelar_de_turno-editada/lib/notification_service.dart)
-- Garantir que as ações de "Desligar" e "Adiar" resetem o semáforo global para liberar o fluxo do app.
+---
 
-## Verification Plan
-1. `flutter build apk`.
-2. Instalação limpa no S24 Ultra.
-3. Teste Alarme (App Morto + Bloqueado) -> Clicar em DESLIGAR -> Verificar se a Tabela abre sozinha após a interação.
-4. Validar se o consumo de CPU permanece normal durante o alarme.
+## Proposta de Debate: Passo 1 (Higiene Visual)
+
+### Item 5: Tabela Anual (Redundância)
+- **Diagnóstico**: O `cardDia` atualmente desenha o dia (`dm`) em todos os modos. Na Visão Anual, essa informação já existe na coluna à esquerda.
+- **Sugestão de Solução**: Utilizar a flag `tipo == "aa"` para ocultar o texto do dia, deixando apenas a letra do turno em destaque.
+
+### Item 4: Logo do Menu
+- **Diagnóstico**: O logo está dentro de um `Material` com `borderRadius`. Se a imagem não for quadrada ou tiver margens internas pequenas, ela sofre cortes.
+- **Sugestão de Solução**: Ajustar o `BoxFit` para `fit: BoxFit.contain` e possivelmente aumentar levemente o `SizedBox` ou remover o `Clip.antiAlias` se o logo original já for arredondado.
+
+---
+
+## Próximos Passos
+- [ ] Debate e Aprovação do Passo 1.
+- [ ] Auditoria Técnica do Item 1 (Upgrade).
+- [ ] Levantamento de Requisitos para o Item 2 (Férias/Extras).
