@@ -1,14 +1,22 @@
-# Tarefas: Restauração de Fidelidade e Estabilização do Alarme (Passo a Passo)
+# Registro de Evolução e Regras de Ouro
 
-- [x] **Passo 1: Blindagem de Dados (JSON Payload)**
-    - [x] Atualizar `lib/notification_service.dart` para usar `jsonEncode`.
-    - [x] Atualizar `lib/main.dart` para usar `jsonDecode`.
-    - [x] Validar funcionamento de caracteres especiais no título/corpo.
-- [/] **Passo 2: Autoridade Nativa (Fim do pedido de Digital)**
-    - [x] Limpar `android/app/src/main/kotlin/.../MainActivity.kt` (Reversão para classe vazia).
-    - [ ] Validar que o alarme não solicita digital/padrão ao disparar bloqueado.
-- [ ] **Passo 3: Inteligência de Inicialização (Cold Start)**
-    - [ ] Implementar `navigatorKey` e `AppRoot` no `lib/main.dart`.
-- [ ] **Passo 4: Auditoria Final e Build**
-    - [ ] Executar `dart analyze` para garantir zero erros.
-    - [ ] Gerar APK Release para teste de campo.
+## Regras de Ouro da Aplicação
+- [x] Segurança Máxima
+- [x] Zero Regressão
+- [x] Auditoria de Impacto
+- [x] Fidelidade ao Autor
+- [x] Pesquisa Multi-IA e Auditoria Cruzada (Timeout e Loop Assíncrono)
+- [x] Transparência
+
+---
+
+## Status do Projeto
+- [x] Central de Ajuda e Identidade do Autor
+- [x] Estabilização de Alarmes (Cenário A: App Vivo)
+- [x] Modernização de Dependências (Fase 3.5 - Versões 2026)
+- [/] Operação Ressurreição e Fluidez (Fase 4.2)
+    - [x] Restaurar comportamento de não pedir digital (MainActivity.kt limpa)
+    - [x] Implementar JSON Payload seguro para alarmes
+    - [/] Implementar Loop de Paciência Assíncrono na Splash (`main.dart`)
+    - [ ] Adicionar trava de segurança (Timeout) de 10 minutos
+    - [ ] Validar fluidez total: Alarme -> Desligar -> Tabela Automática

@@ -195,16 +195,21 @@ class _HomeState extends State<Home> {
       
       if (!mounted) return;
 
-      // Auditoria de Etapa 3: Só abre a Tabela se não houver um alarme em andamento.
-      // Isso impede que a grade de turnos "atropele" a tela de reconhecimento.
-      if (!isAlarmActive) {
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const Tabela())
-        );
-      } else {
-        debugPrint("🚦 Navegação da Splash bloqueada: Alarme detectado como prioridade.");
+      // Auditoria de Etapa 3.2: Loop de Paciência (Aguardando Alarme)
+      // Se um alarme estiver tocando, a Splash Screen aguarda de forma não-bloqueante.
+      // O timeout de 10 minutos (3000 ciclos de 200ms) garante segurança total.
+      int timeoutCounter = 0;
+      while (isAlarmActive && timeoutCounter < 3000) {
+        await Future.delayed(const Duration(milliseconds: 200));
+        timeoutCounter++;
       }
+
+      if (!mounted) return;
+      
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const Tabela())
+      );
     });
 
     // Lê e define as preferências salvas
