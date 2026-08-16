@@ -1,35 +1,24 @@
-# Plano de Debate: Refinamentos de Layout e Estratégia de Evolução
+# Plano de Refinamento: Layout "Badge" Premium (Etapa 5.1)
 
-Este documento serve como base para o debate das 5 sugestões de melhoria, classificadas por risco de regressão e impacto funcional.
+Este plano visa implementar a Opção 1 de layout para a Visão Anual (Modo Moderno), posicionando os indicadores no canto superior esquerdo e o turno no centro absoluto.
 
-## Classificação de Risco (Regras de Ouro Aplicadas)
+## Auditoria de Design Profissional
 
-### 🟢 Baixo Risco (Mudanças Visuais e de Texto)
-1.  **Item 5: Redundância na Visão Anual**: Remover a exibição do dia do mês dentro do card de turno quando visualizado na tabela anual (`tipo == "aa"`).
-2.  **Item 4: Logo no Menu Lateral**: Ajustar o `DrawerHeader` para evitar que o logo apareça cortado.
-3.  **Item 3: Central de Ajuda**: Adicionar novos tópicos e realizar ajustes simples em textos existentes.
+A Opção 1 foi selecionada por oferecer a melhor separação entre o conteúdo principal (Turno) e as informações secundárias (Indicadores). Esta assimetria é característica de designs modernos e elimina o conflito de espaço vertical.
 
-### 🟡 Médio Risco (Infraestrutura)
-4.  **Item 1: Flutter Upgrade**: O sistema sugere atualização. Exige auditoria para confirmar se a versão nova (provavelmente Flutter 3.45+) não quebra o motor de notificações que acabamos de estabilizar.
+## Solução Técnica
 
-### 🔴 Alto Risco (Lógica de Negócio e Dados)
-5.  **Item 2: Mudanças em Férias e Horas Extras**: Refatoração profunda em telas de lançamento que lidam com cálculos e persistência de arquivos. Exige auditoria linha a linha e backup prévio.
+1.  **Estrutura**: Uso de `Stack` para permitir que os indicadores "flutuem" sem empurrar o texto.
+2.  **Posicionamento**:
+    - **Turno**: Centralizado via `Center`, com `fontSize: 18` e `FontWeight.bold`.
+    - **Indicadores**: Agrupados em `Row` e posicionados em `top: 2, left: 6`.
+3.  **Consistência**: O tamanho da letra será idêntico em todos os dias, garantindo uma grade harmoniosa.
 
----
+## Proposed Changes (Aguardando Autorização)
 
-## Proposta de Debate: Passo 1 (Higiene Visual)
+### [MODIFY] [rotinas.dart](file:///F:/Claudio/Flutter/Projeto%20Tabela%20de%20turno/tabelar_de_turno-editada/lib/rotinas.dart)
+- Refatorar o bloco `tipo == "aa"` no Estilo Moderno para a nova estrutura de `Stack`.
 
-### Item 5: Tabela Anual (Redundância)
-- **Diagnóstico**: O `cardDia` atualmente desenha o dia (`dm`) em todos os modos. Na Visão Anual, essa informação já existe na coluna à esquerda.
-- **Sugestão de Solução**: Utilizar a flag `tipo == "aa"` para ocultar o texto do dia, deixando apenas a letra do turno em destaque.
-
-### Item 4: Logo do Menu
-- **Diagnóstico**: O logo está dentro de um `Material` com `borderRadius`. Se a imagem não for quadrada ou tiver margens internas pequenas, ela sofre cortes.
-- **Sugestão de Solução**: Ajustar o `BoxFit` para `fit: BoxFit.contain` e possivelmente aumentar levemente o `SizedBox` ou remover o `Clip.antiAlias` se o logo original já for arredondado.
-
----
-
-## Próximos Passos
-- [ ] Debate e Aprovação do Passo 1.
-- [ ] Auditoria Técnica do Item 1 (Upgrade).
-- [ ] Levantamento de Requisitos para o Item 2 (Férias/Extras).
+## Verification Plan
+1.  Gerar APK e validar visualmente a clareza da grade anual.
+2.  Garantir que os indicadores não colidam com a barra lateral esquerda colorida.

@@ -327,42 +327,65 @@ Widget cardDia(int indice, String dm, String ds, Color corDaBarra,
               // Conteúdo do Card distribuído verticalmente
               Padding(
                 padding: EdgeInsets.fromLTRB((full) ? 15 : 8, 1, 4, 1),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  mainAxisSize: MainAxisSize.max,
-                  children: [
-                    // Topo: Dia da Semana e Indicadores (ou apenas indicadores na Visão Anual)
-                    Row(
-                      mainAxisAlignment: (tipo == "aa") ? MainAxisAlignment.center : MainAxisAlignment.spaceBetween,
+                child: (tipo == "aa") 
+                  ? Stack(
                       children: [
-                        if (tipo != "aa" && diaSemanVisivel)
-                          Text(ds, style: TextStyle(
-                            color: fs, 
-                            fontSize: (full != true) ? 11 : 22, 
-                            fontWeight: FontWeight.bold
-                          )),
+                        // Camada de Indicadores (Bolinhas) no canto superior esquerdo (Opção 1)
                         if (hasHoliday || hasEvent || hasTask)
-                          Row(
-                            children: [
-                              if (hasHoliday) _dot(Colors.green, full),
-                              if (hasEvent) _dot(Colors.blue, full),
-                              if (hasTask) _dot(Colors.orange, full),
-                            ],
+                          Positioned(
+                            top: 0,
+                            left: 0,
+                            child: Row(
+                              children: [
+                                if (hasHoliday) _dot(Colors.green, full),
+                                if (hasEvent) _dot(Colors.blue, full),
+                                if (hasTask) _dot(Colors.orange, full),
+                              ],
+                            ),
                           ),
+                        // Camada de Texto do Turno (Tamanho 18 e Centro Absoluto)
+                        Center(
+                          child: Text(
+                            tabela[indice], 
+                            style: TextStyle(
+                              color: (corDaBarra == desabilitado) ? desabilitado : cor,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 18, 
+                            ),
+                          ),
+                        ),
                       ],
-                    ),
-                    // Centro: Número do Dia ou Letra do Turno Centralizada
-                    Expanded(
-                      child: Center(
-                        child: FittedBox(
-                          fit: BoxFit.contain,
-                          child: (tipo == "aa")
-                            ? Text(tabela[indice], style: TextStyle(
-                                color: (corDaBarra == desabilitado) ? corDaBarra : cor,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 24, // Destaque centralizado na Visão Anual
-                              ))
-                            : Text(dm, textAlign: TextAlign.center, style: TextStyle(
+                    )
+                  : Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisSize: MainAxisSize.max,
+                      children: [
+                        // Topo: Dia da Semana e Indicadores
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            if (diaSemanVisivel)
+                              Text(ds, style: TextStyle(
+                                color: fs, 
+                                fontSize: (full != true) ? 11 : 22, 
+                                fontWeight: FontWeight.bold
+                              )),
+                            if (hasHoliday || hasEvent || hasTask)
+                              Row(
+                                children: [
+                                  if (hasHoliday) _dot(Colors.green, full),
+                                  if (hasEvent) _dot(Colors.blue, full),
+                                  if (hasTask) _dot(Colors.orange, full),
+                                ],
+                              ),
+                          ],
+                        ),
+                        // Centro: Número do Dia (Foco Principal)
+                        Expanded(
+                          child: Center(
+                            child: FittedBox(
+                              fit: BoxFit.contain,
+                              child: Text(dm, textAlign: TextAlign.center, style: TextStyle(
                                 color: (corDaBarra == Colors.amber) 
                                     ? Colors.amber 
                                     : (corDaBarra == desabilitado) 
@@ -371,22 +394,20 @@ Widget cardDia(int indice, String dm, String ds, Color corDaBarra,
                                 fontWeight: FontWeight.bold,
                                 fontSize: (full != true) ? tamanhoFonteData : 60,
                               )),
+                            ),
+                          ),
                         ),
-                      ),
+                        // Rodapé: Letra do Turno
+                        Container(
+                          alignment: Alignment.bottomRight,
+                          child: Text(tabela[indice], style: TextStyle(
+                            color: (corDaBarra == desabilitado) ? corDaBarra : cor,
+                            fontWeight: FontWeight.bold,
+                            fontSize: (full != true) ? 12 : 30,
+                          )),
+                        ),
+                      ],
                     ),
-                    // Rodapé: Letra do Turno (Oculto na Visão Anual para evitar duplicidade)
-                    if (tipo != "aa")
-                      Container(
-                        alignment: Alignment.bottomRight,
-                        child: Text(tabela[indice], style: TextStyle(
-                          color: (corDaBarra == desabilitado) ? corDaBarra : cor,
-                          fontWeight: FontWeight.bold,
-                          fontSize: (full != true) ? 12 : 30,
-                        )),
-                      ),
-                    if (tipo == "aa") const SizedBox(height: 2), // Margem de respiro inferior
-                  ],
-                ),
               ),
             ],
           ),
