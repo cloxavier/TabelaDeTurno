@@ -1,24 +1,34 @@
-# Plano de Refinamento: Layout "Badge" Premium (Etapa 5.1)
+# Plano de Implementação: Sincronização e Identidade de Grupos
 
-Este plano visa implementar a Opção 1 de layout para a Visão Anual (Modo Moderno), posicionando os indicadores no canto superior esquerdo e o turno no centro absoluto.
+Este plano visa padronizar a seleção de grupos no aplicativo, introduzindo uma distinção visual entre o grupo favorito (persistente) e o grupo visualizado (temporário), além de garantir a reversão automática para o favorito ao sair do app.
 
-## Auditoria de Design Profissional
+## Auditoria de Design e Comportamento
 
-A Opção 1 foi selecionada por oferecer a melhor separação entre o conteúdo principal (Turno) e as informações secundárias (Indicadores). Esta assimetria é característica de designs modernos e elimina o conflito de espaço vertical.
+### 1. Hierarquia Visual (Diferenciação)
+- **Grupo Favorito (Persistente)**: Destaque Triplo (Fundo, Borda e Texto de cor diferente).
+- **Grupo Visualizado (Temporário)**: Destaque Duplo (Apenas Borda e Texto, como no estado atual).
+- **Sublinhado**: Mantido para indicar qual tabela está sendo mostrada no momento.
 
-## Solução Técnica
+### 2. Gestos e Ações
+- **Clique Curto (Tabela/Anual/Mensal)**: Muda o `grupoAtual` apenas na memória RAM (temporário).
+- **Clique Longo (Global)**: Salva no arquivo de preferências e atualiza o estado visual (persistente).
 
-1.  **Estrutura**: Uso de `Stack` para permitir que os indicadores "flutuem" sem empurrar o texto.
-2.  **Posicionamento**:
-    - **Turno**: Centralizado via `Center`, com `fontSize: 18` e `FontWeight.bold`.
-    - **Indicadores**: Agrupados em `Row` e posicionados em `top: 2, left: 6`.
-3.  **Consistência**: O tamanho da letra será idêntico em todos os dias, garantindo uma grade harmoniosa.
+### 3. Mecanismo de Reversão (O Fim da Semi-Persistência)
+Utilizaremos um observador de ciclo de vida para garantir que o "Modo Consulta" seja limpo ao sair do aplicativo.
 
 ## Proposed Changes (Aguardando Autorização)
 
-### [MODIFY] [rotinas.dart](file:///F:/Claudio/Flutter/Projeto%20Tabela%20de%20turno/tabelar_de_turno-editada/lib/rotinas.dart)
-- Refatorar o bloco `tipo == "aa"` no Estilo Moderno para a nova estrutura de `Stack`.
+### [MODIFY] [main.dart](file:///F:/Claudio/Flutter/Projeto%20Tabela%20de%20turno/tabelar_de_turno-editada/lib/main.dart)
+- Implementar `WidgetsBindingObserver` no `AppRoot`.
+- No evento `AppLifecycleState.paused`, forçar `grupoAtual = favorito`.
+
+### [MODIFY] [tabela.dart](file:///F:/Claudio/Flutter/Projeto%20Tabela%20de%20turno/tabelar_de_turno-editada/lib/tabela.dart)
+- Refatorar `btContainer` para suportar `onLongPress`.
+- Implementar a lógica de cores: fundo preenchido apenas se `valorGrupo == favorito`.
+
+### [MODIFY] [visao_diaria.dart](file:///F:/Claudio/Flutter/Projeto%20Tabela%20de%20turno/tabelar_de_turno-editada/lib/visao_diaria.dart)
+- Sincronizar o visual dos botões de grupo para que o favorito tenha o fundo preenchido, mantendo a consistência visual em todo o app.
 
 ## Verification Plan
-1.  Gerar APK e validar visualmente a clareza da grade anual.
-2.  Garantir que os indicadores não colidam com a barra lateral esquerda colorida.
+1. **Teste Temporário**: Na Visão Mensal, clique na letra C -> Minimize o app -> Volte ao app -> Deve estar na letra do seu grupo Favorito original.
+2. **Teste Persistente**: Clique longo na letra B -> SnackBar aparece -> Feche o app completamente (Hard Kill) -> Reabra -> O app deve iniciar na letra B com o fundo colorido.

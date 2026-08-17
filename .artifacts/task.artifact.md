@@ -10,33 +10,19 @@
 
 ---
 
-## Status do Projeto e Backlog (Ordem de Prioridade por Risco)
+## Status do Projeto e Backlog (Fase de Sincronização)
 
-### 🟢 Fase 1: Higiene Visual e Ajustes de Layout (Baixo Risco)
-- [x] **Estabilização da Visão Anual (Modo Moderno)**
-    - [x] Remover redundância do dia do mês.
-    - [x] Centralizar turno.
-    - [x] Implementar Layout "Badge" (Indicadores no canto superior esquerdo).
-    - [ ] **Ajuste Fino de Alinhamento**: Testar `top: 1, left: 0` com `font: 17` para equilíbrio entre bolinhas e horário.
-- [ ] **Expansão da Central de Ajuda (Item 3)**
-    - [ ] Mapear e implementar novos tópicos de ajuda solicitados.
-    - [ ] Revisar textos de ajuda existentes.
+### 🟢 Fase 1: Higiene Visual e Gestão de Estado (Baixo Risco)
+- [x] **Estabilização da Visão Anual (Modo Moderno)**: Concluído.
+- [x] **Sincronização Inteligente de Grupos (Opção 3 - Refinada)**
+    - [x] Implementar reversão de grupo no ciclo de vida (`main.dart`).
+    - [x] Implementar observador de retomada na tela principal (`tabela.dart`).
+    - [x] Refatorar `btContainer` em `lib/tabela.dart` com clique longo e destaque triplo (Fundo colorido).
+    - [x] Sincronizar visual da Visão Diária com o novo padrão de favorito.
+- [ ] **Expansão da Central de Ajuda (Item 3)**.
 
 ### 🟡 Fase 2: Infraestrutura e Manutenção (Médio Risco)
-- [ ] **Auditoria de Flutter Upgrade (Item 1)**
-    - [ ] Analisar impacto da nova versão estável do Flutter no motor de alarmes e plugins.
+- [ ] **Auditoria de Flutter Upgrade (Item 1)**.
 
 ### 🔴 Fase 3: Reformulação de Lançamentos (Alto Risco)
-- [ ] **Mudanças em Férias e Horas Extras (Item 2)**
-    - [ ] Levantar novos requisitos funcionais.
-    - [ ] Auditoria de impacto na persistência de dados.
-    - [ ] Implementação linha a linha com garantia de não-regressão.
-
----
-
-## Histórico de Conquistas Estabilizadas
-- [x] Motor de Alarmes Modernizado (Android 15 / S24 Ultra).
-- [x] Ressurreição de App após Hard Kill (Cold Start).
-- [x] Comunicação Interna via JSON Payload (Resiliência de Dados).
-- [x] Modernização Total de Dependências (Versões 2026).
-- [x] Fim dos pedidos repetitivos de permissão no boot.
+- [ ] **Mudanças em Férias e Horas Extras (Item 2)**.

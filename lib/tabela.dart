@@ -30,7 +30,7 @@ class Tabela extends StatefulWidget {
   State<Tabela> createState() => _TabelaState();
 }
 
-class _TabelaState extends State<Tabela> {
+class _TabelaState extends State<Tabela> with WidgetsBindingObserver {
   late PageController _pageController;
   StreamSubscription? _intentSub;
   Timer? _midnightTimer;
@@ -39,6 +39,9 @@ class _TabelaState extends State<Tabela> {
   void initState() {
     super.initState();
     _pageController = PageController(initialPage: paginaInicial);
+    
+    // Registra o observador para detectar o retorno do app do background
+    WidgetsBinding.instance.addObserver(this);
     
     // Escuta por compartilhamento de arquivos JSON enquanto o app está aberto.
     _intentSub = ReceiveSharingIntent.instance.getMediaStream().listen((List<SharedMediaFile> value) {
@@ -144,7 +147,19 @@ class _TabelaState extends State<Tabela> {
     _pageController.dispose();
     _intentSub?.cancel();
     _midnightTimer?.cancel();
+    WidgetsBinding.instance.removeObserver(this);
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Quando o app volta do background (resumed), o 'main.dart' já resetou o grupoAtual.
+    // Disparamos o setState aqui para que a Tabela reflita essa mudança visualmente.
+    if (state == AppLifecycleState.resumed) {
+      setState(() {
+        debugPrint("✨ Tabela atualizada: Voltando para o grupo favorito.");
+      });
+    }
   }
 
   /// Processa o arquivo JSON compartilhado vindo do WhatsApp ou Gestor de Arquivos.
@@ -475,31 +490,55 @@ class _TabelaState extends State<Tabela> {
     );
   }
 
-  /// Constrói o botão de seleção de grupo.
+  /// Constrói o botão de seleção de grupo com suporte a favorito e visualização temporária.
   Widget btContainer(String letra, double perc) {
     String letraMaisucula = letra.toUpperCase();
-    return Container(
-      width: (perc != 0) ? largura * perc / 100 - mrgn : null,
-      decoration: BoxDecoration(
-        borderRadius: const BorderRadius.all(Radius.circular(10)),
-        border: Border.all(
-          color: (grupoAtual == grupo[letra]) ? corBrdBtTurnoC : corBrdBtTurnoE,
-          width: 3
-        ),
-      ),
-      child: TextButton(
-        child: Text(
-          letraMaisucula,
-          style: TextStyle(
-            fontSize: 18,
-            color: (grupoAtual == grupo[letra]) ? corTxBtTurnoC : corTxBtTurnoE
+    int valorGrupo = grupo[letra]!;
+    bool isFavorito = (preferencias[0]["turnoFavorito"] == valorGrupo);
+    bool isSelecionado = (grupoAtual == valorGrupo);
+
+    return InkWell(
+      onTap: () {
+        setState(() {
+          grupoAtual = valorGrupo;
+        });
+      },
+      onLongPress: () {
+        setState(() {
+          grupoAtual = valorGrupo;
+          preferencias[0]["turnoFavorito"] = grupoAtual;
+          salvaArquivo();
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text("Grupo $letraMaisucula definido como favorito!"),
+            duration: const Duration(seconds: 2),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      },
+      child: Container(
+        width: (perc != 0) ? largura * perc / 100 - mrgn : null,
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        decoration: BoxDecoration(
+          // Destaque Triplo: Fundo colorido apenas para o favorito
+          color: isFavorito ? (isTemaDark ? Colors.orange.withValues(alpha: 0.15) : Colors.orange.shade50) : Colors.transparent,
+          borderRadius: const BorderRadius.all(Radius.circular(10)),
+          border: Border.all(
+            color: isSelecionado ? corBrdBtTurnoC : corBrdBtTurnoE,
+            width: 3
           ),
         ),
-        onPressed: () {
-          setState(() {
-            grupoAtual = grupo[letra]!;
-          });
-        },
+        child: Text(
+          letraMaisucula,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontSize: 18,
+            color: isSelecionado ? corTxBtTurnoC : corTxBtTurnoE,
+            fontWeight: isSelecionado ? FontWeight.bold : FontWeight.normal,
+            decoration: isSelecionado ? TextDecoration.underline : TextDecoration.none,
+          ),
+        ),
       )
     );
   }

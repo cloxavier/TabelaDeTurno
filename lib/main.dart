@@ -48,12 +48,14 @@ class AppRoot extends StatefulWidget {
   State<AppRoot> createState() => _AppRootState();
 }
 
-class _AppRootState extends State<AppRoot> {
+class _AppRootState extends State<AppRoot> with WidgetsBindingObserver {
   StreamSubscription<NotificationResponse>? _notificationSubscription;
 
   @override
   void initState() {
     super.initState();
+    // Registra o observador para detectar quando o usuário sai do app
+    WidgetsBinding.instance.addObserver(this);
 
     // Escuta novas notificações enquanto o app está aberto
     _notificationSubscription = NotificationService().onNotification.listen(_handleNotification);
@@ -107,8 +109,21 @@ class _AppRootState extends State<AppRoot> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _notificationSubscription?.cancel();
     super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // Auditoria de Opção 3: Reversão silenciosa de grupo ao sair do app.
+    // Quando o app é minimizado (paused), resetamos a visualização para o favorito salvo.
+    if (state == AppLifecycleState.paused) {
+      if (preferencias.isNotEmpty && preferencias[0]["turnoFavorito"] != null) {
+        grupoAtual = preferencias[0]["turnoFavorito"];
+        debugPrint("🔄 App em background: Grupo de visualização resetado para o favorito.");
+      }
+    }
   }
 
   @override

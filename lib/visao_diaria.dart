@@ -192,7 +192,7 @@ class _VisaoDiariaState extends State<VisaoDiaria> {
   }
 
   Widget _buildGrupoHeader(String letra, int index) {
-    bool isFavorito = (grupoAtual == grupo[letra]);
+    bool isFavorito = (preferencias[0]["turnoFavorito"] == grupo[letra]);
     bool isVisualizado = (_grupoSendoVisualizado == letra);
 
     return InkWell(
@@ -220,9 +220,16 @@ class _VisaoDiariaState extends State<VisaoDiaria> {
         width: largura * larguraInterna * tmBt,
         padding: const EdgeInsets.symmetric(vertical: 5),
         decoration: BoxDecoration(
-          color: isVisualizado ? Colors.blue.withValues(alpha: 0.1) : Colors.transparent,
+          // Destaque Triplo: Fundo colorido sutil para o favorito, harmonizado com o Modo Moderno.
+          color: isFavorito 
+            ? (isTemaDark ? Colors.orange.withValues(alpha: 0.15) : Colors.orange.shade50) 
+            : (isVisualizado ? Colors.blue.withValues(alpha: 0.1) : Colors.transparent),
           borderRadius: BorderRadius.circular(8),
-          border: isVisualizado ? Border.all(color: Colors.blue.withValues(alpha: 0.3)) : null,
+          border: Border.all(
+            color: isVisualizado 
+              ? Colors.blue.withValues(alpha: 0.3) 
+              : (isFavorito ? Colors.orange.withValues(alpha: 0.3) : Colors.transparent)
+          ),
         ),
         child: Column(
           children: [
@@ -234,9 +241,9 @@ class _VisaoDiariaState extends State<VisaoDiaria> {
             Text(grupos[index],
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: isVisualizado ? Colors.blue : corTxBtTurnoC,
+                  color: isVisualizado ? Colors.blue : (isFavorito ? Colors.orange : corTxBtTurnoC),
                   fontSize: 20,
-                  fontWeight: isVisualizado ? FontWeight.bold : FontWeight.normal,
+                  fontWeight: (isVisualizado || isFavorito) ? FontWeight.bold : FontWeight.normal,
                   decoration: isVisualizado ? TextDecoration.underline : TextDecoration.none,
                 )),
           ],
