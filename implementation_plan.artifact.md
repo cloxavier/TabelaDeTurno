@@ -1,34 +1,30 @@
-# Plano de Implementação: Sincronização e Identidade de Grupos
+# Plano de Refinamento: Didática Profissional na Central de Ajuda
 
-Este plano visa padronizar a seleção de grupos no aplicativo, introduzindo uma distinção visual entre o grupo favorito (persistente) e o grupo visualizado (temporário), além de garantir a reversão automática para o favorito ao sair do app.
+Este plano visa aplicar os refinamentos finais de texto na Central de Ajuda, tornando-a mais profunda, precisa e verdadeiramente instrutiva para o usuário final.
 
-## Auditoria de Design e Comportamento
+## Auditoria de Conteúdo (Ensino Profissional)
 
-### 1. Hierarquia Visual (Diferenciação)
-- **Grupo Favorito (Persistente)**: Destaque Triplo (Fundo, Borda e Texto de cor diferente).
-- **Grupo Visualizado (Temporário)**: Destaque Duplo (Apenas Borda e Texto, como no estado atual).
-- **Sublinhado**: Mantido para indicar qual tabela está sendo mostrada no momento.
+Ajustaremos os tópicos para refletir a profundidade real das funcionalidades:
 
-### 2. Gestos e Ações
-- **Clique Curto (Tabela/Anual/Mensal)**: Muda o `grupoAtual` apenas na memória RAM (temporário).
-- **Clique Longo (Global)**: Salva no arquivo de preferências e atualiza o estado visual (persistente).
+### 1. Identidade de Grupo
+- **Novo Texto**: Detalhar que o clique longo salva o favorito (Estrela/Fundo) e o clique curto tem funções diferentes (Integrantes na Diária/Geral vs. Consulta na Semanal/Anual).
 
-### 3. Mecanismo de Reversão (O Fim da Semi-Persistência)
-Utilizaremos um observador de ciclo de vida para garantir que o "Modo Consulta" seja limpo ao sair do aplicativo.
+### 2. Navegação e Atalhos
+- **Novo Texto**: Incluir a visão "Geral" e detalhar que o atalho de data no topo é específico da Visão Diária.
+
+### 3. Organização de Integrantes
+- **Novo Texto**: Explicar os dois caminhos para o gerenciador: Menu Lateral ou Clique nos cabeçalhos da Vista Geral.
+
+### 4. Inteligência de Lançamentos
+- **Novo Texto**: Reforçar as validações de segurança (descanso de 11h, conflitos de férias) e o alarme para tarefas.
 
 ## Proposed Changes (Aguardando Autorização)
 
-### [MODIFY] [main.dart](file:///F:/Claudio/Flutter/Projeto%20Tabela%20de%20turno/tabelar_de_turno-editada/lib/main.dart)
-- Implementar `WidgetsBindingObserver` no `AppRoot`.
-- No evento `AppLifecycleState.paused`, forçar `grupoAtual = favorito`.
-
-### [MODIFY] [tabela.dart](file:///F:/Claudio/Flutter/Projeto%20Tabela%20de%20turno/tabelar_de_turno-editada/lib/tabela.dart)
-- Refatorar `btContainer` para suportar `onLongPress`.
-- Implementar a lógica de cores: fundo preenchido apenas se `valorGrupo == favorito`.
-
-### [MODIFY] [visao_diaria.dart](file:///F:/Claudio/Flutter/Projeto%20Tabela%20de%20turno/tabelar_de_turno-editada/lib/visao_diaria.dart)
-- Sincronizar o visual dos botões de grupo para que o favorito tenha o fundo preenchido, mantendo a consistência visual em todo o app.
+### [MODIFY] [ajuda_screen.dart](file:///F:/Claudio/Flutter/Projeto%20Tabela%20de%20turno/tabelar_de_turno-editada/lib/screens/ajuda_screen.dart)
+- Atualizar a lista de tópicos com os textos conversacionais e profundos sugeridos pelo Autor.
+- Manter o uso de `RichText` e a paleta de cores premium (Azul Marinho/Claríssimo).
 
 ## Verification Plan
-1. **Teste Temporário**: Na Visão Mensal, clique na letra C -> Minimize o app -> Volte ao app -> Deve estar na letra do seu grupo Favorito original.
-2. **Teste Persistente**: Clique longo na letra B -> SnackBar aparece -> Feche o app completamente (Hard Kill) -> Reabra -> O app deve iniciar na letra B com o fundo colorido.
+1. Validar a inclusão da visão "Geral" em todos os tópicos pertinentes.
+2. Confirmar se a explicação sobre os integrantes diferencia o clique curto na Diária e na Geral.
+3. Garantir a ausência de marcações técnicas (**) no resultado visual final.
